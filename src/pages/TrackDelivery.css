@@ -1,0 +1,76 @@
+.track-container {
+    padding: 30px;
+    max-width: 800px;
+    margin: auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.card {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.status-list {
+    list-style: none;
+    padding: 0;
+}
+
+.status-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.timestamp {
+    font-size: 13px;
+    color: #999;
+}
+
+.status-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.status-tag.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-tag.approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-tag['agent-assigned'] {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-tag.delivered {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.error-text {
+    color: red;
+    text-align: center;
+    margin-top: 20px;
+}
