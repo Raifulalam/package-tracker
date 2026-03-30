@@ -1,45 +1,75 @@
 import { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
+import './auth.css';
 
 const Login = () => {
-    const [form, setForm] = useState({ email: '', password: '' });
-    const { login } = useAuth();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', form);
-            login(res.data); // { token, user }
-            const role = res.data.user.role;
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
 
-            if (role === 'sender') navigate('/sender/my-packages');
-            else if (role === 'agent') navigate('/agent');
-            else if (role === 'admin') navigate('/admin');
-        } catch (err) {
-            alert(err.response?.data?.msg || 'Login failed');
-        }
-    };
+    try {
+      const response = await api.post('/api/auth/login', form);
+      login(response);
 
-    return (
-        <div style={styles.container}>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <input name="email" placeholder="Email" type="email" onChange={handleChange} required />
-                <input name="password" placeholder="Password" type="password" onChange={handleChange} required />
-                <button type="submit">Login</button>
-            </form>
-        </div>
-    );
-};
+      if (response.user.role === 'admin') navigate('/admin');
+      else if (response.user.role === 'agent') navigate('/agent');
+      else navigate('/dashboard');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const styles = {
-    container: { maxWidth: '400px', margin: '40px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' },
-    form: { display: 'flex', flexDirection: 'column', gap: '10px' }
+  return (
+    <div className="auth-shell">
+      <section className="auth-card">
+        <span className="auth-eyebrow">ParcelOps Access</span>
+        <h2>Run deliveries with live operational control.</h2>
+        <p>Sign in to manage shipments, dispatch agents, and track parcels in real time.</p>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <input
+            name="email"
+            type="email"
+            placeholder="Work email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+          {error ? <div className="auth-error">{error}</div> : null}
+          <button className="button-primary" disabled={loading} type="submit">
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          New to the platform? <Link to="/register">Create an account</Link>
+        </p>
+      </section>
+    </div>
+  );
 };
 
 export default Login;

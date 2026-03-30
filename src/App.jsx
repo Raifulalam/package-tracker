@@ -1,30 +1,29 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import SenderDashboard from './pages/SenderDashboard';
-import AgentDashboard from './pages/AgentDashboard';
-import AdminDashboard from './pages/AdminDashboard'; // Add if needed
-import TrackPackage from './pages/TrackPackage';
-
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoutes';
 import { AuthProvider } from './context/AuthContext';
-
-import NewDelivery from './pages/NewDelivery';
+import AdminDashboard from './pages/AdminDashboard';
+import AgentDashboard from './pages/AgentDashboard';
+import LandingPage from './pages/LandinPage';
+import Login from './pages/Login';
 import MyPackages from './pages/MyPackage';
+import NewDelivery from './pages/NewDelivery';
+import Register from './pages/Register';
+import SenderDashboard from './pages/SenderDashboard';
 import TrackDelivery from './pages/TrackDelivery';
+import TrackPackage from './pages/TrackPackage';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* 🔓 Public Routes */}
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/track" element={<TrackPackage />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
 
-          {/* 📦 Sender Routes */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute roles={['sender']}>
                 <SenderDashboard />
@@ -55,8 +54,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* 🚚 Agent Routes */}
           <Route
             path="/agent"
             element={
@@ -65,18 +62,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* 📡 Shared Tracking Route */}
-          <Route
-            path="/track"
-            element={
-              <ProtectedRoute roles={['sender', 'agent', 'admin']}>
-                <TrackPackage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 🛠 Admin Route (optional) */}
           <Route
             path="/admin"
             element={

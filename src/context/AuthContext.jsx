@@ -1,28 +1,51 @@
-import { createContext, useContext, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useMemo, useState } from 'react';
 
 const AuthContext = createContext();
 
+function normalizeAuth(payload) {
+  if (!payload) return null;
+
+  const profile = payload.profile || payload.user || payload;
+
+  if (!payload.token && !payload.user && !payload.profile) {
+    return null;
+  }
+
+  return {
+    token: payload.token,
+    ...profile,
+  };
+}
+
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const stored = localStorage.getItem('courier_auth');
-        return stored ? JSON.parse(stored) : null;
-    });
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('courier_auth');
+    return stored ? normalizeAuth(JSON.parse(stored)) : null;
+  });
 
-    const login = (data) => {
-        setUser(data);
-        localStorage.setItem('courier_auth', JSON.stringify(data));
-    };
+  const login = (payload) => {
+    const normalized = normalizeAuth(payload);
+    setUser(normalized);
+    localStorage.setItem('courier_auth', JSON.stringify(normalized));
+  };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('courier_auth');
-    };
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('courier_auth');
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const value = useMemo(
+    () => ({
+      user,
+      login,
+      logout,
+      isAuthenticated: Boolean(user?.token),
+    }),
+    [user]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

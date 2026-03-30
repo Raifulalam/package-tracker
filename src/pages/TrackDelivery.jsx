@@ -1,104 +1,138 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { useReactToPrint } from 'react-to-print';
+import PortalShell from '../components/PortalShell';
+import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/AuthContext';
-import io from 'socket.io-client';
-import SenderNav from '../components/SenderNav';
-import './TrackDelivery.css'; // Create this CSS file for styling
-
-const socket = io('http://localhost:5000');
+import { api } from '../lib/api';
+import { formatCurrency, formatDateTime } from '../lib/formatters';
+import { getSocket } from '../lib/socket';
+import './TrackDelivery.css';
 
 const TrackDelivery = () => {
-    const { id } = useParams();
-    const { user } = useAuth();
-    const [pkg, setPkg] = useState(null);
-    const [error, setError] = useState(null);
+  const { id } = useParams();
+  const { user } = useAuth();
+  const printRef = useRef(null);
+  const [pkg, setPkg] = useState(null);
+  const [error, setError] = useState('');
 
-    const fetchPackage = async () => {
-        try {
-            const res = await axios.get(`http://localhost:5000/api/package/${id}`, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
-            setPkg(res.data);
-        } catch (err) {
-            console.error('Error fetching package:', err.response?.data || err.message);
-            setError('Failed to fetch package. Please try again.');
+  useEffect(() => {
+    let active = true;
+
+    const loadPackage = async () => {
+      try {
+        const response = await api.get(`/api/package/${id}`, { token: user.token });
+        if (active) {
+          setPkg(response.data);
+          setError('');
         }
+      } catch (err) {
+        if (active) setError(err.message);
+      }
     };
 
-    useEffect(() => {
-        if (!user?.token || !id) return;
+    loadPackage();
 
-        fetchPackage();
+    const socket = getSocket();
+    const handleUpdate = (updatedPackage) => {
+      if (updatedPackage._id === id) {
+        setPkg(updatedPackage);
+      }
+    };
 
-        socket.on('packageUpdate', (updatedPkg) => {
-            if ((updatedPkg._id || updatedPkg.id) === id) {
-                setPkg(updatedPkg);
-            }
-        });
+    socket.on('package:updated', handleUpdate);
 
-        return () => socket.off('packageUpdate');
-    }, [id, user]);
+    return () => {
+      active = false;
+      socket.off('package:updated', handleUpdate);
+    };
+  }, [id, user.token]);
 
-    if (!user?.token) return <p>Authenticating...</p>;
-    if (error) return <p className="error-text">{error}</p>;
-    if (!pkg) return <p>Loading package...</p>;
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: pkg ? `${pkg.trackingNumber}-shipment-record` : 'shipment-record',
+  });
 
-    return (
+  return (
+    <PortalShell
+      title="Shipment Timeline"
+      subtitle="Review the full operational history for a shipment, including assignment, route progress, and delivery milestones."
+    >
+      {error ? <div className="auth-error">{error}</div> : null}
+
+      {!pkg ? (
+        <div className="empty-state">Loading shipment record...</div>
+      ) : (
         <>
-            <SenderNav />
-            <div className="track-container">
-                <h2>📦 Package Tracking</h2>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <button className="button-primary" onClick={handlePrint} type="button">
+              Print shipment summary
+            </button>
+          </div>
 
-                <div className="card">
-                    <h3>📌 Delivery Details</h3>
-                    <p><strong>Pickup Address:</strong> {pkg.pickupAddress}</p>
-                    <p><strong>Delivery Address:</strong> {pkg.deliveryAddress}</p>
-                    <p><strong>Item Type:</strong> {pkg.itemType}</p>
-                    <p><strong>Weight:</strong> {pkg.weight}</p>
-                    <p><strong>Delivery Type:</strong> {pkg.deliveryType}</p>
-                    <p><strong>Instructions:</strong> {pkg.instructions || 'None'}</p>
-                    <p><strong>Current Status:</strong> <span className={`status-tag ${pkg.status.toLowerCase().replace(/\s+/g, '-')}`}>{pkg.status}</span></p>
-                </div>
-
-                <div className="card">
-                    <h3>👤 Receiver Details</h3>
-                    <p><strong>Name:</strong> {pkg.receiverName}</p>
-                    <p><strong>Phone:</strong> {pkg.receiverPhone}</p>
-                </div>
-
-                {pkg.assignedAgent ? (
-                    <div className="card">
-                        <h3>🚚 Assigned Agent</h3>
-                        <p><strong>Name:</strong> {pkg.assignedAgent.name}</p>
-                        <p><strong>Email:</strong> {pkg.assignedAgent.email}</p>
-                        <p><strong>Phone:</strong> {pkg.assignedAgent.phone}</p>
-                    </div>
-                ) : (
-                    <div className="card">
-                        <h3>🚚 Assigned Agent</h3>
-                        <p>No agent assigned yet.</p>
-                    </div>
-                )}
-
-                <div className="card">
-                    <h3>📈 Status Updates</h3>
-                    {pkg.statusUpdates?.length > 0 ? (
-                        <ul className="status-list">
-                            {pkg.statusUpdates.map((s, i) => (
-                                <li key={i}>
-                                    <span className="status-label">{s.status}</span>
-                                    <span className="timestamp">{new Date(s.timestamp).toLocaleString()}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>No status updates yet.</p>
-                    )}
-                </div>
+          <div className="shipment-sheet glass-card" ref={printRef}>
+            <div className="shipment-headline">
+              <div>
+                <p className="sheet-label">Tracking number</p>
+                <h2>{pkg.trackingNumber}</h2>
+              </div>
+              <StatusBadge status={pkg.status} />
             </div>
+
+            <div className="shipment-grid">
+              <section className="sheet-panel">
+                <h3>Receiver profile</h3>
+                <p><strong>Name:</strong> {pkg.receiverName}</p>
+                <p><strong>Phone:</strong> {pkg.receiverPhone}</p>
+                <p><strong>Email:</strong> {pkg.receiverEmail || 'Not provided'}</p>
+                <p><strong>Courier:</strong> {pkg.assignedAgent?.name || 'Awaiting assignment'}</p>
+              </section>
+
+              <section className="sheet-panel">
+                <h3>Route and SLA</h3>
+                <p><strong>Pickup:</strong> {pkg.pickupAddress}</p>
+                <p><strong>Delivery:</strong> {pkg.deliveryAddress}</p>
+                <p><strong>Service level:</strong> {pkg.deliveryType}</p>
+                <p><strong>Estimated delivery:</strong> {formatDateTime(pkg.estimatedDeliveryAt)}</p>
+                <p><strong>Delivered at:</strong> {formatDateTime(pkg.deliveredAt)}</p>
+              </section>
+
+              <section className="sheet-panel">
+                <h3>Parcel profile</h3>
+                <p><strong>Item:</strong> {pkg.itemType}</p>
+                <p><strong>Category:</strong> {pkg.parcelCategory}</p>
+                <p><strong>Weight:</strong> {pkg.weight} kg</p>
+                <p><strong>Declared value:</strong> {formatCurrency(pkg.declaredValue)}</p>
+                <p><strong>COD amount:</strong> {formatCurrency(pkg.codAmount)}</p>
+              </section>
+
+              <section className="sheet-panel">
+                <h3>Handling notes</h3>
+                <p>{pkg.instructions || 'No special handling instructions recorded.'}</p>
+              </section>
+            </div>
+
+            <section className="sheet-panel" style={{ marginTop: 20 }}>
+              <h3>Operational timeline</h3>
+              <div className="timeline">
+                {pkg.statusUpdates?.map((update, index) => (
+                  <div className="timeline-row" key={`${update.status}-${index}`}>
+                    <div className="timeline-dot" />
+                    <div className="timeline-content">
+                      <strong>{update.label || update.status}</strong>
+                      <small>{formatDateTime(update.timestamp)}</small>
+                      <p>{update.note || 'No additional note recorded.'}</p>
+                      {update.location ? <small>Location: {update.location}</small> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         </>
-    );
+      )}
+    </PortalShell>
+  );
 };
 
 export default TrackDelivery;

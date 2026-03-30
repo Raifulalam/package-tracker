@@ -1,0 +1,234 @@
+/* LandingPage.css - Manual CSS for Courier Landing Page */
+
+/* Reset / base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+}
+
+
+
+/* Page container */
+.landing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+    gap: 32px;
+}
+
+/* Header */
+.landing__header {
+    text-align: center;
+    max-width: 980px;
+}
+
+.landing__title {
+    color: #f6c94d;
+    font-size: 2.25rem;
+    /* 36px */
+    line-height: 1.05;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.landing__subtitle {
+    color: #c9d6e9;
+    font-size: 1.05rem;
+    /* 17px */
+}
+
+/* Hero 3D container */
+.hero {
+    width: 100%;
+    max-width: 1100px;
+    height: 420px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+    display: grid;
+    grid-template-columns: 1fr 460px;
+    gap: 24px;
+    padding: 28px;
+    align-items: center;
+}
+
+/* Left: heading + CTA (text column) */
+.hero__left {
+    padding-right: 8px;
+}
+
+.hero__h1 {
+    color: #ffffff;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+}
+
+.hero__p {
+    color: #b7c7dd;
+    margin-bottom: 18px;
+}
+
+.hero__cta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.btn--primary {
+    background: linear-gradient(90deg, #f7c948, #e8ad21);
+    color: #0b1220;
+    box-shadow: 0 6px 20px rgba(233, 162, 17, 0.18);
+}
+
+.btn--primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(233, 162, 17, 0.22);
+}
+
+.btn--ghost {
+    background: transparent;
+    color: #e6eef8;
+    border: 2px solid rgba(230, 238, 248, 0.12);
+}
+
+/* Right: 3D canvas wrapper */
+.hero__canvas {
+    width: 100%;
+    height: 340px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.02));
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    box-shadow: inset 0 -6px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Make canvas fill the wrapper */
+.hero__canvas canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* CTA below hero */
+.cta-row {
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Sections - Why Choose & Services */
+.section {
+    width: 100%;
+    max-width: 1100px;
+    background: transparent;
+    padding: 28px;
+    border-radius: 12px;
+}
+
+.section__title {
+    color: #f6c94d;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.section__lead {
+    color: #b7c7dd;
+    margin-bottom: 20px;
+}
+
+/* Cards grid */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
+    transition: transform .2s ease, box-shadow .2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+}
+
+.card__title {
+    color: #ffd98b;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.card__desc {
+    color: #c7d6ea;
+    font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+    .hero {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 18px;
+    }
+
+    .hero__canvas {
+        width: 100%;
+        height: 320px;
+        order: -1;
+        margin-bottom: 12px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .landing {
+        padding: 36px 18px;
+    }
+
+    .landing__title {
+        font-size: 1.85rem;
+    }
+}
+
+/* small screens */
+@media (max-width: 480px) {
+    .landing__title {
+        font-size: 1.4rem;
+    }
+
+    .hero__canvas {
+        height: 260px;
+    }
+
+    .hero__h1 {
+        font-size: 1.1rem;
+    }
+}
