@@ -23,6 +23,7 @@ body,
     align-items: center;
     padding: 48px 24px;
     gap: 32px;
+    background-color: #0b1220;
 }
 
 /* Header */
