@@ -23,7 +23,7 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           <Route
-            path="/dashboard"
+            path="/sender"
             element={
               <ProtectedRoute roles={['sender']}>
                 <SenderDashboard />

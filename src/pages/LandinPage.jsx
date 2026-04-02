@@ -1,11 +1,26 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+
 import "./LandingPage.css";
 import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "../context/AuthContext";
 export default function LandingPage() {
     const navigate = useNavigate();
+
+    const { isAuthenticated } = useAuth();
+
+
     const handlelogin = () => {
+        if (isAuthenticated) {
+            console.log("User is authenticated, navigating to book page.");
+            const role = localStorage.getItem('courier_auth') ? JSON.parse(localStorage.getItem('courier_auth')).role : null;
+            if (isAuthenticated) {
+                navigate(`/${role}`);
+                return;
+            }
+
+            navigate('/book');
+            return;
+        }
+
         navigate('/login');
     }
     const handleTracking = () => {
@@ -23,6 +38,8 @@ export default function LandingPage() {
                 </p>
             </header>
 
+
+
             {/* Hero */}
             <section className="hero" aria-label="Hero">
                 <div className="hero__left">
@@ -39,30 +56,14 @@ export default function LandingPage() {
                 </div>
 
                 <div className="hero__canvas" role="img" aria-label="3D truck model">
-                    <Canvas camera={{ position: [0, 2, 5], fov: 45 }}>
-                        <ambientLight intensity={0.6} />
-                        <directionalLight position={[5, 5, 5]} intensity={1.2} />
-                        <OrbitControls enableZoom={false} />
-
-                        {/* simple truck body */}
-                        <mesh rotation={[0, Math.PI / 6, 0]} position={[0, -0.25, 0]}>
-                            <boxGeometry args={[3, 1.4, 1.4]} />
-                            <meshStandardMaterial color="#f7c948" />
-                        </mesh>
-
-                        {/* wheels (rotation prop is array on mesh) */}
-                        {[
-                            [-1, -0.95, 0.72],
-                            [1, -0.95, 0.72],
-                            [-1, -0.95, -0.72],
-                            [1, -0.95, -0.72],
-                        ].map((pos, i) => (
-                            <mesh key={i} position={pos} rotation={[Math.PI / 2, 0, 0]}>
-                                <cylinderGeometry args={[0.28, 0.28, 0.6, 32]} />
-                                <meshStandardMaterial color="#111827" />
-                            </mesh>
-                        ))}
-                    </Canvas>
+                    <video
+                        src="/Delivery-truck.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="hero__video"
+                    />
                 </div>
             </section>
 
