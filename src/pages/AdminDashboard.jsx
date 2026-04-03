@@ -1,24 +1,37 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import PricingEditor from '../components/PricingEditor';
 import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
+import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/formatters';
+import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
 
 const adminStatuses = ['Approved', 'Scheduled', 'Assigned', 'Delayed', 'Exception', 'Cancelled', 'Delivered'];
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [packages, setPackages] = useState([]);
   const [overview, setOverview] = useState({ total: 0 });
   const [roleSummary, setRoleSummary] = useState({});
+  const [pricing, setPricing] = useState({
+    sameCity: 0,
+    sameDistrict: 0,
+    sameProvince: 0,
+    differentProvince: 0,
+    perKgRate: 0,
+    expressMultiplier: 1,
+    codCharge: 0,
+  });
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [assignmentDrafts, setAssignmentDrafts] = useState({});
   const [statusDrafts, setStatusDrafts] = useState({});
   const [busyKey, setBusyKey] = useState('');
+  const [pricingBusy, setPricingBusy] = useState(false);
   const [error, setError] = useState('');
   const deferredSearch = useDeferredValue(search);
 
@@ -27,9 +40,10 @@ const AdminDashboard = () => {
 
     const loadDashboard = async () => {
       try {
-        const [usersResponse, packageResponse] = await Promise.all([
+        const [usersResponse, packageResponse, pricingResponse] = await Promise.all([
           api.get('/api/admin/users', { token: user.token }),
           api.get('/api/admin/packages', { token: user.token }),
+          api.get('/api/pricing', { token: user.token }),
         ]);
 
         if (!active) return;
@@ -38,6 +52,7 @@ const AdminDashboard = () => {
         setRoleSummary(usersResponse.data.byRole);
         setPackages(packageResponse.data.packages);
         setOverview(packageResponse.data.overview);
+        setPricing(pricingResponse.data);
         setError('');
       } catch (err) {
         if (active) setError(err.message);
@@ -80,6 +95,7 @@ const AdminDashboard = () => {
     setBusyKey(`assign:${packageId}`);
     try {
       await api.put(`/api/admin/assign/${packageId}`, { agentId }, { token: user.token });
+      showToast('Agent assigned successfully.', 'success');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -98,6 +114,7 @@ const AdminDashboard = () => {
         { status, note: `Status updated by admin ${user.name}.` },
         { token: user.token }
       );
+      showToast(`Shipment moved to ${status}.`, 'success');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -111,10 +128,32 @@ const AdminDashboard = () => {
     try {
       await api.delete(`/api/admin/package/${packageId}`, { token: user.token });
       setPackages((prev) => prev.filter((pkg) => pkg._id !== packageId));
+      showToast('Shipment removed from the network.', 'success');
     } catch (err) {
       setError(err.message);
     } finally {
       setBusyKey('');
+    }
+  };
+
+  const updatePricingField = (event) => {
+    const { name, value } = event.target;
+    setPricing((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const savePricing = async (event) => {
+    event.preventDefault();
+    setPricingBusy(true);
+
+    try {
+      const response = await api.put('/api/pricing', pricing, { token: user.token });
+      setPricing(response.data);
+      showToast('Pricing configuration updated.', 'success');
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPricingBusy(false);
     }
   };
 
@@ -182,6 +221,7 @@ const AdminDashboard = () => {
                     <span>Destination: {pkg.deliveryAddress}</span>
                     <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
                     <span>Agent: {pkg.assignedAgent?.name || 'Unassigned'}</span>
+                    <span>Shipping charge: {formatCurrency(pkg.shippingCharge)}</span>
                   </div>
 
                   <div className="toolbar" style={{ marginTop: 16 }}>
@@ -243,8 +283,17 @@ const AdminDashboard = () => {
             </div>
           )}
         </article>
+        <PricingEditor
+          disabled={false}
+          loading={pricingBusy}
+          onChange={updatePricingField}
+          onSubmit={savePricing}
+          pricing={pricing}
+        />
+      </section>
 
-        <aside className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
+      <section className="dashboard-grid" style={{ marginTop: 18 }}>
+        <aside className="glass-card section-card" style={{ gridColumn: 'span 12' }}>
           <h2>User distribution</h2>
           <div className="package-stack">
             {Object.entries(roleSummary).map(([role, count]) => (

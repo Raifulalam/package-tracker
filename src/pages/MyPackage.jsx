@@ -4,7 +4,7 @@ import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/formatters';
+import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
 
 const MyPackages = () => {
@@ -102,6 +102,7 @@ const MyPackages = () => {
                   <span>Destination: {pkg.deliveryAddress}</span>
                   <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
                   <span>Assigned courier: {pkg.assignedAgent?.name || 'Awaiting dispatch'}</span>
+                  <span>Charge: {formatCurrency(pkg.shippingCharge)}</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>

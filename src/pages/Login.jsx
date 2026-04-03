@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './auth.css';
@@ -7,6 +8,7 @@ import './auth.css';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,7 @@ const Login = () => {
     try {
       const response = await api.post('/api/auth/login', form);
       login(response);
+      showToast(`Welcome back, ${response.user.name}.`, 'success');
 
       if (response.user.role === 'admin') navigate('/admin');
       else if (response.user.role === 'agent') navigate('/agent');

@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LocationSelectGroup from '../components/LocationSelectGroup';
 import PortalShell from '../components/PortalShell';
+import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
+import { useLocations } from '../hooks/useLocations';
 import { api } from '../lib/api';
+import { formatCurrency } from '../lib/formatters';
+import { buildLocationLabel, calculateEstimatedPrice, getRouteLabel } from '../lib/pricing';
 
 const initialForm = {
   receiverName: '',
   receiverPhone: '',
   receiverEmail: '',
-  pickupAddress: '',
-  deliveryAddress: '',
   itemType: '',
   parcelCategory: 'Parcel',
   weight: '',
-  deliveryType: 'express',
+  deliveryType: 'normal',
   priority: 'standard',
   declaredValue: '',
   paymentMode: 'prepaid',
@@ -21,14 +24,99 @@ const initialForm = {
   scheduledPickupAt: '',
   instructions: '',
   dimensions: { length: '', width: '', height: '' },
+  province: '',
+  district: '',
+  city: '',
+};
+
+const emptyPricing = {
+  sameCity: 0,
+  sameDistrict: 0,
+  sameProvince: 0,
+  differentProvince: 0,
+  perKgRate: 0,
+  expressMultiplier: 1,
+  codCharge: 0,
 };
 
 const NewDelivery = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
+  const { provinces, getDistricts, getCities, loading: locationsLoading, error: locationsError } = useLocations();
+
   const [form, setForm] = useState(initialForm);
+  const [pricing, setPricing] = useState(emptyPricing);
+  const [pricingLoading, setPricingLoading] = useState(true);
+  const [pricingError, setPricingError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadPricing = async () => {
+      try {
+        const response = await api.get('/api/pricing');
+
+        if (!active) return;
+
+        setPricing(response.data || emptyPricing);
+        setPricingError('');
+      } catch (err) {
+        if (active) {
+          setPricingError(err.message);
+          setPricing(emptyPricing);
+        }
+      } finally {
+        if (active) {
+          setPricingLoading(false);
+        }
+      }
+    };
+
+    loadPricing();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const senderLocation = useMemo(
+    () => ({
+      province: user?.province || '',
+      district: user?.district || '',
+      city: user?.city || '',
+    }),
+    [user?.city, user?.district, user?.province]
+  );
+
+  const receiverLocation = useMemo(
+    () => ({
+      province: form.province,
+      district: form.district,
+      city: form.city,
+    }),
+    [form.city, form.district, form.province]
+  );
+
+  const districts = getDistricts(form.province);
+  const cities = getCities(form.province, form.district);
+
+  const estimate = useMemo(
+    () =>
+      calculateEstimatedPrice({
+        senderLocation,
+        receiverLocation,
+        weight: form.weight,
+        deliveryType: form.deliveryType,
+        paymentMode: form.paymentMode,
+        pricing,
+      }),
+    [form.deliveryType, form.paymentMode, form.weight, pricing, receiverLocation, senderLocation]
+  );
+
+  const senderLocationMissing = !senderLocation.province || !senderLocation.district || !senderLocation.city;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -45,7 +133,24 @@ const NewDelivery = () => {
       return;
     }
 
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const updatedForm = { ...prev, [name]: value };
+
+      if (name === 'province') {
+        updatedForm.district = '';
+        updatedForm.city = '';
+      }
+
+      if (name === 'district') {
+        updatedForm.city = '';
+      }
+
+      if (name === 'paymentMode' && value !== 'cod') {
+        updatedForm.codAmount = '';
+      }
+
+      return updatedForm;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -55,6 +160,7 @@ const NewDelivery = () => {
 
     try {
       const response = await api.post('/api/package', form, { token: user.token });
+      showToast(`Shipment created. Estimated charge: ${formatCurrency(response.data.shippingCharge)}.`, 'success');
       navigate(`/sender/track/${response.data._id}`);
     } catch (err) {
       setError(err.message);
@@ -63,70 +169,179 @@ const NewDelivery = () => {
     }
   };
 
+  const isEstimateReady = Boolean(
+    pricing &&
+      form.weight &&
+      receiverLocation.province &&
+      receiverLocation.district &&
+      receiverLocation.city
+  );
+
   return (
     <PortalShell
       title="Create Shipment"
-      subtitle="Capture the shipment profile once, then let ParcelOps track scheduling, dispatch, and delivery progress automatically."
+      subtitle="Create route-aware shipments with Nepal location intelligence and live pricing based on origin, destination, weight, service tier, and payment mode."
     >
       <section className="glass-card section-card">
-        <div className="package-topline" style={{ marginBottom: 20 }}>
-          <div>
-            <h2>Shipment intake form</h2>
-            <p>Add receiver details, service level, and package metadata for better operational planning.</p>
-          </div>
+        <div className="info-banner" style={{ marginBottom: 18 }}>
+          Sender origin: <strong>{buildLocationLabel(senderLocation) || 'Location missing from your account'}</strong>
         </div>
 
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <input name="receiverName" placeholder="Receiver name" value={form.receiverName} onChange={handleChange} required />
-          <input name="receiverPhone" placeholder="Receiver phone" value={form.receiverPhone} onChange={handleChange} required />
-          <input name="receiverEmail" placeholder="Receiver email" value={form.receiverEmail} onChange={handleChange} />
-          <input name="itemType" placeholder="Item type" value={form.itemType} onChange={handleChange} required />
-          <input className="full-span" name="pickupAddress" placeholder="Pickup address" value={form.pickupAddress} onChange={handleChange} required />
-          <input className="full-span" name="deliveryAddress" placeholder="Delivery address" value={form.deliveryAddress} onChange={handleChange} required />
-          <select name="parcelCategory" value={form.parcelCategory} onChange={handleChange}>
-            <option value="Parcel">Parcel</option>
-            <option value="Documents">Documents</option>
-            <option value="Fragile">Fragile</option>
-            <option value="Electronics">Electronics</option>
-          </select>
-          <input name="weight" type="number" min="0" step="0.1" placeholder="Weight (kg)" value={form.weight} onChange={handleChange} required />
-          <select name="deliveryType" value={form.deliveryType} onChange={handleChange}>
-            <option value="normal">Normal</option>
-            <option value="express">Express</option>
-            <option value="sameDay">Same day</option>
-          </select>
-          <select name="priority" value={form.priority} onChange={handleChange}>
-            <option value="standard">Standard priority</option>
-            <option value="priority">Priority</option>
-            <option value="critical">Critical</option>
-          </select>
-          <input name="declaredValue" type="number" min="0" step="1" placeholder="Declared value" value={form.declaredValue} onChange={handleChange} />
-          <input name="scheduledPickupAt" type="datetime-local" value={form.scheduledPickupAt} onChange={handleChange} />
-          <select name="paymentMode" value={form.paymentMode} onChange={handleChange}>
-            <option value="prepaid">Prepaid</option>
-            <option value="cod">Cash on delivery</option>
-          </select>
-          <input name="codAmount" type="number" min="0" step="1" placeholder="COD amount" value={form.codAmount} onChange={handleChange} />
-          <input name="dimensions.length" type="number" min="0" step="0.1" placeholder="Length (cm)" value={form.dimensions.length} onChange={handleChange} />
-          <input name="dimensions.width" type="number" min="0" step="0.1" placeholder="Width (cm)" value={form.dimensions.width} onChange={handleChange} />
-          <input name="dimensions.height" type="number" min="0" step="0.1" placeholder="Height (cm)" value={form.dimensions.height} onChange={handleChange} />
-          <textarea
-            className="full-span"
-            name="instructions"
-            rows="5"
-            placeholder="Access notes, packaging details, handling instructions, or route remarks"
-            value={form.instructions}
-            onChange={handleChange}
-          />
-          {error ? <div className="auth-error full-span">{error}</div> : null}
-          <div className="full-span" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="button-primary" disabled={loading} type="submit">
-              {loading ? 'Creating shipment...' : 'Create shipment'}
-            </button>
-            <button className="button-ghost" onClick={() => navigate('/sender/my-packages')} type="button">
-              View existing shipments
-            </button>
+        {senderLocationMissing ? (
+          <div className="auth-error" style={{ marginBottom: 18 }}>
+            Your sender account does not yet have a saved province, district, and city. Register or update the
+            account with a valid Nepal location before creating shipments.
           </div>
+        ) : null}
+
+        {locationsError ? <div className="auth-error" style={{ marginBottom: 18 }}>{locationsError}</div> : null}
+        {pricingError ? <div className="auth-error" style={{ marginBottom: 18 }}>{pricingError}</div> : null}
+
+        <form className="form-grid" onSubmit={handleSubmit}>
+          <label className="field-group">
+            <span>Receiver name</span>
+            <input name="receiverName" onChange={handleChange} placeholder="Receiver name" required value={form.receiverName} />
+          </label>
+
+          <label className="field-group">
+            <span>Receiver phone</span>
+            <input name="receiverPhone" onChange={handleChange} placeholder="Receiver phone" required value={form.receiverPhone} />
+          </label>
+
+          <label className="field-group">
+            <span>Receiver email</span>
+            <input name="receiverEmail" onChange={handleChange} placeholder="Receiver email" type="email" value={form.receiverEmail} />
+          </label>
+
+          <label className="field-group">
+            <span>Item type</span>
+            <input name="itemType" onChange={handleChange} placeholder="Documents, electronics, apparel..." required value={form.itemType} />
+          </label>
+
+          <LocationSelectGroup
+            cities={cities}
+            disabled={locationsLoading}
+            districts={districts}
+            helperText="Select the receiver destination to drive same-city, same-district, same-province, or cross-province pricing."
+            legend="Receiver destination"
+            onChange={handleChange}
+            provinces={provinces}
+            values={form}
+          />
+
+          <label className="field-group">
+            <span>Parcel category</span>
+            <input name="parcelCategory" onChange={handleChange} placeholder="Parcel" value={form.parcelCategory} />
+          </label>
+
+          <label className="field-group">
+            <span>Weight (kg)</span>
+            <input min="0.1" name="weight" onChange={handleChange} placeholder="Weight in kg" required step="0.1" type="number" value={form.weight} />
+          </label>
+
+          <label className="field-group">
+            <span>Delivery type</span>
+            <select name="deliveryType" onChange={handleChange} value={form.deliveryType}>
+              <option value="normal">Normal</option>
+              <option value="express">Express</option>
+            </select>
+          </label>
+
+          <label className="field-group">
+            <span>Payment mode</span>
+            <select name="paymentMode" onChange={handleChange} value={form.paymentMode}>
+              <option value="prepaid">Prepaid</option>
+              <option value="cod">COD</option>
+            </select>
+          </label>
+
+          <label className="field-group">
+            <span>COD amount</span>
+            <input
+              disabled={form.paymentMode !== 'cod'}
+              min="0"
+              name="codAmount"
+              onChange={handleChange}
+              placeholder="Cash to collect"
+              step="0.01"
+              type="number"
+              value={form.codAmount}
+            />
+          </label>
+
+          <label className="field-group">
+            <span>Declared value</span>
+            <input
+              min="0"
+              name="declaredValue"
+              onChange={handleChange}
+              placeholder="Declared parcel value"
+              step="0.01"
+              type="number"
+              value={form.declaredValue}
+            />
+          </label>
+
+          <label className="field-group">
+            <span>Scheduled pickup</span>
+            <input name="scheduledPickupAt" onChange={handleChange} type="datetime-local" value={form.scheduledPickupAt} />
+          </label>
+
+          <label className="field-group">
+            <span>Priority</span>
+            <select name="priority" onChange={handleChange} value={form.priority}>
+              <option value="standard">Standard</option>
+              <option value="priority">Priority</option>
+              <option value="critical">Critical</option>
+            </select>
+          </label>
+
+          <label className="field-group">
+            <span>Length (cm)</span>
+            <input min="0" name="dimensions.length" onChange={handleChange} step="0.1" type="number" value={form.dimensions.length} />
+          </label>
+
+          <label className="field-group">
+            <span>Width (cm)</span>
+            <input min="0" name="dimensions.width" onChange={handleChange} step="0.1" type="number" value={form.dimensions.width} />
+          </label>
+
+          <label className="field-group">
+            <span>Height (cm)</span>
+            <input min="0" name="dimensions.height" onChange={handleChange} step="0.1" type="number" value={form.dimensions.height} />
+          </label>
+
+          <label className="field-group full-span">
+            <span>Handling instructions</span>
+            <textarea
+              name="instructions"
+              onChange={handleChange}
+              placeholder="Drop-off notes, fragile handling, access instructions..."
+              rows="4"
+              value={form.instructions}
+            />
+          </label>
+
+          <div className="pricing-card full-span">
+            <span>{getRouteLabel(estimate.routeType)}</span>
+            <strong>{formatCurrency(isEstimateReady ? estimate.totalPrice : 0)}</strong>
+            <div className="pricing-meta">
+              <span>Base: {formatCurrency(estimate.basePrice)}</span>
+              <span>Weight charge: {formatCurrency(Number(form.weight || 0) * estimate.perKgRate)}</span>
+              <span>Delivery multiplier: {estimate.deliveryMultiplier}x</span>
+              <span>COD surcharge: {formatCurrency(estimate.codCharge)}</span>
+            </div>
+          </div>
+
+          {error ? <div className="auth-error full-span">{error}</div> : null}
+
+          <button
+            className="button-primary full-span"
+            disabled={loading || locationsLoading || pricingLoading || senderLocationMissing}
+            type="submit"
+          >
+            {loading ? 'Creating shipment...' : 'Create shipment'}
+          </button>
         </form>
       </section>
     </PortalShell>

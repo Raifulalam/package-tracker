@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import StatusBadge from '../components/StatusBadge';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/formatters';
+import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
+import { getRouteLabel } from '../lib/pricing';
 import './auth.css';
 
 const TrackPackage = () => {
@@ -87,6 +88,8 @@ const TrackPackage = () => {
               <div className="package-meta" style={{ marginTop: 14 }}>
                 <span>Pickup: {shipment.pickupAddress}</span>
                 <span>Destination: {shipment.deliveryAddress}</span>
+                <span>Charge: {formatCurrency(shipment.shippingCharge)}</span>
+                <span>Route tier: {getRouteLabel(shipment.pricingSnapshot?.routeType)}</span>
                 <span>Estimated delivery: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
                 <span>Assigned courier: {shipment.assignedAgent?.name || 'Pending assignment'}</span>
               </div>

@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoutes';
+import { ToastProvider } from './components/ToastProvider';
 import { AuthProvider } from './context/AuthContext';
 import AdminDashboard from './pages/AdminDashboard';
 import AgentDashboard from './pages/AgentDashboard';
@@ -14,65 +15,67 @@ import TrackPackage from './pages/TrackPackage';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/track" element={<TrackPackage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+    <ToastProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/track" element={<TrackPackage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
 
-          <Route
-            path="/sender"
-            element={
-              <ProtectedRoute roles={['sender']}>
-                <SenderDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/sender/create"
-            element={
-              <ProtectedRoute roles={['sender']}>
-                <NewDelivery />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/sender/my-packages"
-            element={
-              <ProtectedRoute roles={['sender']}>
-                <MyPackages />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/sender/track/:id"
-            element={
-              <ProtectedRoute roles={['sender']}>
-                <TrackDelivery />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agent"
-            element={
-              <ProtectedRoute roles={['agent']}>
-                <AgentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute roles={['sender']}>
+                  <SenderDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sender/create"
+              element={
+                <ProtectedRoute roles={['sender']}>
+                  <NewDelivery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sender/my-packages"
+              element={
+                <ProtectedRoute roles={['sender']}>
+                  <MyPackages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sender/track/:id"
+              element={
+                <ProtectedRoute roles={['sender']}>
+                  <TrackDelivery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agent"
+              element={
+                <ProtectedRoute roles={['agent']}>
+                  <AgentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

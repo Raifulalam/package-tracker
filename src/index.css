@@ -160,6 +160,17 @@ button {
   color: var(--ink-950);
 }
 
+.field-group {
+  display: grid;
+  gap: 8px;
+}
+
+.field-group span {
+  color: var(--ink-700);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .button-primary,
 .button-secondary,
 .button-danger,
@@ -277,6 +288,53 @@ button {
   grid-column: 1 / -1;
 }
 
+.fieldset-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(52, 80, 97, 0.08);
+}
+
+.section-copy p {
+  margin: 6px 0 0;
+  color: var(--ink-500);
+}
+
+.info-banner {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(15, 114, 184, 0.08);
+  color: var(--sky-700);
+}
+
+.pricing-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(161, 77, 40, 0.1), rgba(15, 114, 184, 0.12));
+  border: 1px solid rgba(52, 80, 97, 0.08);
+}
+
+.pricing-card strong {
+  font-size: 2rem;
+  line-height: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.pricing-meta,
+.pricing-rules {
+  display: grid;
+  gap: 8px;
+  color: var(--ink-700);
+}
+
+.pricing-rules {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .auth-shell {
   min-height: 100vh;
   display: grid;
@@ -295,6 +353,36 @@ button {
   color: var(--danger);
 }
 
+.toast-region {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  gap: 10px;
+  z-index: 2000;
+}
+
+.toast-card {
+  min-width: 240px;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  box-shadow: 0 20px 55px rgba(19, 32, 45, 0.16);
+  color: white;
+}
+
+.toast-success {
+  background: #1d9a63;
+}
+
+.toast-error {
+  background: #c74646;
+}
+
+.toast-info {
+  background: #0f72b8;
+}
+
 @media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -307,5 +395,15 @@ button {
   .package-table {
     display: block;
     overflow-x: auto;
+  }
+
+  .toast-region {
+    left: 16px;
+    right: 16px;
+  }
+
+  .toast-card {
+    min-width: 0;
+    max-width: none;
   }
 }

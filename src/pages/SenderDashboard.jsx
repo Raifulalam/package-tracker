@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/formatters';
+import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
 import { useAuth } from '../context/AuthContext';
 
@@ -137,9 +137,10 @@ const SenderDashboard = () => {
                     <StatusBadge status={pkg.status} />
                   </div>
                   <div className="package-meta" style={{ marginTop: 12 }}>
-                    <span>Destination: {pkg.deliveryAddress}</span>
-                    <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
-                  </div>
+                  <span>Destination: {pkg.deliveryAddress}</span>
+                  <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
+                  <span>Charge: {formatCurrency(pkg.shippingCharge)}</span>
+                </div>
                   <Link className="button-secondary" style={{ marginTop: 14, display: 'inline-flex' }} to={`/sender/track/${pkg._id}`}>
                     Open shipment view
                   </Link>

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
+import { getRouteLabel } from '../lib/pricing';
 import './TrackDelivery.css';
 
 const TrackDelivery = () => {
@@ -93,6 +94,7 @@ const TrackDelivery = () => {
                 <p><strong>Pickup:</strong> {pkg.pickupAddress}</p>
                 <p><strong>Delivery:</strong> {pkg.deliveryAddress}</p>
                 <p><strong>Service level:</strong> {pkg.deliveryType}</p>
+                <p><strong>Route tier:</strong> {getRouteLabel(pkg.pricingSnapshot?.routeType)}</p>
                 <p><strong>Estimated delivery:</strong> {formatDateTime(pkg.estimatedDeliveryAt)}</p>
                 <p><strong>Delivered at:</strong> {formatDateTime(pkg.deliveredAt)}</p>
               </section>
@@ -104,6 +106,7 @@ const TrackDelivery = () => {
                 <p><strong>Weight:</strong> {pkg.weight} kg</p>
                 <p><strong>Declared value:</strong> {formatCurrency(pkg.declaredValue)}</p>
                 <p><strong>COD amount:</strong> {formatCurrency(pkg.codAmount)}</p>
+                <p><strong>Shipping charge:</strong> {formatCurrency(pkg.shippingCharge)}</p>
               </section>
 
               <section className="sheet-panel">

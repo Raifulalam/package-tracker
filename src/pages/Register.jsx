@@ -1,15 +1,23 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import LocationSelectGroup from '../components/LocationSelectGroup';
+import { useToast } from '../components/ToastProvider';
+import { useLocations } from '../hooks/useLocations';
 import { api } from '../lib/api';
 import './auth.css';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { provinces, getDistricts, getCities, loading: locationsLoading, error: locationsError } = useLocations();
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     hub: '',
+    province: '',
+    district: '',
+    city: '',
     password: '',
     role: 'sender',
   });
@@ -17,7 +25,22 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+
+    setForm((prev) => {
+      const nextForm = { ...prev, [name]: value };
+
+      if (name === 'province') {
+        nextForm.district = '';
+        nextForm.city = '';
+      }
+
+      if (name === 'district') {
+        nextForm.city = '';
+      }
+
+      return nextForm;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -27,6 +50,7 @@ const Register = () => {
 
     try {
       await api.post('/api/auth/register', form);
+      showToast('Account created successfully. You can sign in now.', 'success');
       navigate('/login');
     } catch (err) {
       setError(err.message);
@@ -35,14 +59,17 @@ const Register = () => {
     }
   };
 
+  const districts = getDistricts(form.province);
+  const cities = getCities(form.province, form.district);
+
   return (
     <div className="auth-shell">
-      <section className="auth-card">
+      <section className="auth-card" style={{ width: 'min(720px, 100%)' }}>
         <span className="auth-eyebrow">Create Workspace Access</span>
         <h2>Build a modern parcel operation from one control room.</h2>
         <p>Register a sender, field agent, or admin account and start managing live delivery workflows.</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form form-grid" onSubmit={handleSubmit}>
           <input
             name="name"
             placeholder="Full name"
@@ -83,8 +110,33 @@ const Register = () => {
             onChange={handleChange}
             required
           />
-          {error ? <div className="auth-error">{error}</div> : null}
-          <button className="button-primary" disabled={loading} type="submit">
+          <LocationSelectGroup
+            cities={cities}
+            disabled={locationsLoading}
+            districts={districts}
+            helperText={
+              form.role === 'sender'
+                ? 'Sender accounts must store a valid Nepal origin location for route-based pricing.'
+                : 'You can also save a structured operating location for this account.'
+            }
+            legend="Account location"
+            onChange={handleChange}
+            provinces={provinces}
+            required={form.role === 'sender'}
+            values={form}
+          />
+          {!locationsLoading && !locationsError && provinces.length === 0 ? (
+            <div className="auth-error full-span">
+              No location data was returned by the backend. Check the API connection before signing up.
+            </div>
+          ) : null}
+          {locationsError ? <div className="auth-error full-span">{locationsError}</div> : null}
+          {error ? <div className="auth-error full-span">{error}</div> : null}
+          <button
+            className="button-primary full-span"
+            disabled={loading || locationsLoading || (form.role === 'sender' && provinces.length === 0)}
+            type="submit"
+          >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
