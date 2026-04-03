@@ -10,10 +10,10 @@ export default function LandingPage() {
 
     const handlelogin = () => {
         if (isAuthenticated) {
-            console.log("User is authenticated, navigating to book page.");
+
             const role = localStorage.getItem('courier_auth') ? JSON.parse(localStorage.getItem('courier_auth')).role : null;
             if (isAuthenticated) {
-                navigate(`/${role}`);
+                navigate(role === 'sender' ? '/dashboard' : `/${role}`);
                 return;
             }
 

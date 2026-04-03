@@ -26,7 +26,7 @@ const Login = () => {
 
       if (response.user.role === 'admin') navigate('/admin');
       else if (response.user.role === 'agent') navigate('/agent');
-      else navigate('/sender');
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
