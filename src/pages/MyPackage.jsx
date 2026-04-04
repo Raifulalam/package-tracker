@@ -10,6 +10,7 @@ import { getSocket } from '../lib/socket';
 const MyPackages = () => {
   const { user } = useAuth();
   const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
   const [error, setError] = useState('');
@@ -26,6 +27,8 @@ const MyPackages = () => {
         }
       } catch (err) {
         if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
@@ -83,7 +86,9 @@ const MyPackages = () => {
 
         {error ? <div className="auth-error">{error}</div> : null}
 
-        {filteredPackages.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">Loading your shipment register...</div>
+        ) : filteredPackages.length === 0 ? (
           <div className="empty-state">No shipments match your current filters.</div>
         ) : (
           <div className="package-stack">

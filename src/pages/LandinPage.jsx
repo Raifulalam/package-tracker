@@ -5,19 +5,12 @@ import { useAuth } from "../context/AuthContext";
 export default function LandingPage() {
     const navigate = useNavigate();
 
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
 
 
     const handlelogin = () => {
         if (isAuthenticated) {
-
-            const role = localStorage.getItem('courier_auth') ? JSON.parse(localStorage.getItem('courier_auth')).role : null;
-            if (isAuthenticated) {
-                navigate(role === 'sender' ? '/dashboard' : `/${role}`);
-                return;
-            }
-
-            navigate('/book');
+            navigate(user?.role === 'sender' ? '/dashboard' : `/${user?.role}`);
             return;
         }
 

@@ -16,6 +16,7 @@ const emptyDashboard = {
 const SenderDashboard = () => {
   const { user } = useAuth();
   const [dashboard, setDashboard] = useState(emptyDashboard);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -30,6 +31,8 @@ const SenderDashboard = () => {
         }
       } catch (err) {
         if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
@@ -81,7 +84,9 @@ const SenderDashboard = () => {
             </Link>
           </div>
 
-          {dashboard.recentPackages.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">Loading your shipment workspace...</div>
+          ) : dashboard.recentPackages.length === 0 ? (
             <div className="empty-state">No shipments yet. Create your first delivery request to get started.</div>
           ) : (
             <table className="package-table">
@@ -123,7 +128,9 @@ const SenderDashboard = () => {
           <h2>Priority queue</h2>
           <p>Shipments still moving through the network.</p>
 
-          {dashboard.upcomingDeliveries.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">Loading active deliveries...</div>
+          ) : dashboard.upcomingDeliveries.length === 0 ? (
             <div className="empty-state">No active shipments right now.</div>
           ) : (
             <div className="package-stack">

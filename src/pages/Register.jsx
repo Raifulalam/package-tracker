@@ -20,6 +20,7 @@ const Register = () => {
     city: '',
     password: '',
     role: 'sender',
+    adminInviteCode: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,10 @@ const Register = () => {
 
       if (name === 'district') {
         nextForm.city = '';
+      }
+
+      if (name === 'role' && value !== 'admin') {
+        nextForm.adminInviteCode = '';
       }
 
       return nextForm;
@@ -110,6 +115,15 @@ const Register = () => {
             onChange={handleChange}
             required
           />
+          {form.role === 'admin' ? (
+            <input
+              name="adminInviteCode"
+              type="password"
+              placeholder="Admin invite code"
+              value={form.adminInviteCode}
+              onChange={handleChange}
+            />
+          ) : null}
           <LocationSelectGroup
             cities={cities}
             disabled={locationsLoading}

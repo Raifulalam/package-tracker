@@ -12,6 +12,7 @@ const AgentDashboard = () => {
   const { user } = useAuth();
   const [packages, setPackages] = useState([]);
   const [meta, setMeta] = useState({ total: 0, pending: 0, active: 0, delivered: 0 });
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [busyId, setBusyId] = useState('');
@@ -31,6 +32,8 @@ const AgentDashboard = () => {
         }
       } catch (err) {
         if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
@@ -124,7 +127,9 @@ const AgentDashboard = () => {
           </select>
         </div>
 
-        {filteredPackages.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">Loading assigned shipments...</div>
+        ) : filteredPackages.length === 0 ? (
           <div className="empty-state">No shipments match the current filters.</div>
         ) : (
           <div className="package-stack">

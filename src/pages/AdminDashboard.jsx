@@ -32,6 +32,7 @@ const AdminDashboard = () => {
   const [statusDrafts, setStatusDrafts] = useState({});
   const [busyKey, setBusyKey] = useState('');
   const [pricingBusy, setPricingBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const deferredSearch = useDeferredValue(search);
 
@@ -56,6 +57,8 @@ const AdminDashboard = () => {
         setError('');
       } catch (err) {
         if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
@@ -202,7 +205,9 @@ const AdminDashboard = () => {
             </select>
           </div>
 
-          {filteredPackages.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">Loading network operations data...</div>
+          ) : filteredPackages.length === 0 ? (
             <div className="empty-state">No shipments available for this filter set.</div>
           ) : (
             <div className="package-stack">

@@ -15,6 +15,7 @@ const TrackDelivery = () => {
   const { user } = useAuth();
   const printRef = useRef(null);
   const [pkg, setPkg] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,6 +30,8 @@ const TrackDelivery = () => {
         }
       } catch (err) {
         if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
@@ -61,7 +64,9 @@ const TrackDelivery = () => {
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
-      {!pkg ? (
+      {loading ? (
+        <div className="empty-state">Loading shipment record...</div>
+      ) : !pkg ? (
         <div className="empty-state">Loading shipment record...</div>
       ) : (
         <>

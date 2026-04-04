@@ -8,6 +8,7 @@ import LandingPage from './pages/LandinPage';
 import Login from './pages/Login';
 import MyPackages from './pages/MyPackage';
 import NewDelivery from './pages/NewDelivery';
+import Profile from './pages/Profile';
 import Register from './pages/Register';
 import SenderDashboard from './pages/SenderDashboard';
 import TrackDelivery from './pages/TrackDelivery';
@@ -64,16 +65,24 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute roles={['admin']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </BrowserRouter>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute roles={['sender', 'agent', 'admin']}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
       </AuthProvider>
     </ToastProvider>
   );

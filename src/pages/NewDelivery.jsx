@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LocationSelectGroup from '../components/LocationSelectGroup';
 import PortalShell from '../components/PortalShell';
 import { useToast } from '../components/ToastProvider';
@@ -190,7 +190,7 @@ const NewDelivery = () => {
         {senderLocationMissing ? (
           <div className="auth-error" style={{ marginBottom: 18 }}>
             Your sender account does not yet have a saved province, district, and city. Register or update the
-            account with a valid Nepal location before creating shipments.
+            account with a valid Nepal location before creating shipments. Open <Link to="/settings">settings</Link> to fix it.
           </div>
         ) : null}
 

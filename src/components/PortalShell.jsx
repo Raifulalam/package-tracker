@@ -7,14 +7,17 @@ const navigationByRole = {
     { to: '/dashboard', label: 'Overview' },
     { to: '/sender/create', label: 'Create Shipment' },
     { to: '/sender/my-packages', label: 'My Shipments' },
+    { to: '/settings', label: 'Settings' },
     { to: '/track', label: 'Public Tracking' },
   ],
   agent: [
     { to: '/agent', label: 'Operations Board' },
+    { to: '/settings', label: 'Settings' },
     { to: '/track', label: 'Tracking Search' },
   ],
   admin: [
     { to: '/admin', label: 'Control Tower' },
+    { to: '/settings', label: 'Settings' },
     { to: '/track', label: 'Tracking Search' },
   ],
 };
@@ -52,6 +55,7 @@ const PortalShell = ({ title, subtitle, children }) => {
           <div>
             <strong>{user?.name}</strong>
             <span>{user?.role}</span>
+            {user?.city ? <span>{user.city}</span> : null}
           </div>
           <button className="portal-logout" onClick={handleLogout}>
             Logout
