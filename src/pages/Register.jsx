@@ -69,10 +69,37 @@ const Register = () => {
 
   return (
     <div className="auth-shell">
-      <section className="auth-card" style={{ width: 'min(720px, 100%)' }}>
-        <span className="auth-eyebrow">Create Workspace Access</span>
-        <h2>Build a modern parcel operation from one control room.</h2>
-        <p>Register a sender, field agent, or admin account and start managing live delivery workflows.</p>
+      <section className="auth-showcase">
+        <span className="auth-showcase-badge">Create Workspace</span>
+        <h1>Launch a faster, smarter delivery workflow with ParcelOps.</h1>
+        <p>
+          Create your account, save your operating location, and start using a delivery platform built for dependable service, live tracking, and operational clarity across Nepal.
+        </p>
+
+        <div className="auth-showcase-grid">
+          <article>
+            <strong>Sender accounts</strong>
+            <span>Create bookings, review rates, and manage outgoing shipments from one streamlined dashboard.</span>
+          </article>
+          <article>
+            <strong>Receiver accounts</strong>
+            <span>Stay updated on incoming parcels with quick access to ETA, status changes, and delivery history.</span>
+          </article>
+          <article>
+            <strong>Agent accounts</strong>
+            <span>Handle field operations with rapid status updates and clear visibility into assigned deliveries.</span>
+          </article>
+          <article>
+            <strong>Admin accounts</strong>
+            <span>Oversee pricing, dispatch, and service quality from a central logistics control layer.</span>
+          </article>
+        </div>
+      </section>
+
+      <section className="auth-card auth-card-wide">
+        <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
+        <h2>Create your ParcelOps account.</h2>
+        <p>Set up your role, save your location details, and get started with a delivery experience built for real operations.</p>
 
         <form className="auth-form form-grid" onSubmit={handleSubmit}>
           <input
@@ -104,6 +131,7 @@ const Register = () => {
           />
           <select name="role" value={form.role} onChange={handleChange} required>
             <option value="sender">Sender</option>
+            <option value="receiver">Receiver</option>
             <option value="agent">Agent</option>
             <option value="admin">Admin</option>
           </select>
@@ -131,7 +159,9 @@ const Register = () => {
             helperText={
               form.role === 'sender'
                 ? 'Sender accounts must store a valid Nepal origin location for route-based pricing.'
-                : 'You can also save a structured operating location for this account.'
+                : form.role === 'receiver'
+                  ? 'Receiver accounts can save a verified city profile to match incoming deliveries more reliably.'
+                  : 'You can also save a structured operating location for this account.'
             }
             legend="Account location"
             onChange={handleChange}

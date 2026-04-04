@@ -1,14 +1,14 @@
 .shipment-sheet {
   padding: 28px;
-  border-radius: 28px;
+  border-radius: 30px;
 }
 
 .shipment-headline {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   align-items: flex-start;
-  padding-bottom: 18px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -16,15 +16,16 @@
   margin: 0;
   color: var(--ink-500);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  font-size: 0.78rem;
 }
 
 .shipment-headline h2 {
   margin: 10px 0 0;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-family: var(--font-display);
+  letter-spacing: -0.04em;
 }
 
 .shipment-grid {
@@ -35,18 +36,22 @@
 }
 
 .sheet-panel {
-  padding: 20px;
+  padding: 22px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(52, 80, 97, 0.1);
+  border: 1px solid rgba(66, 88, 109, 0.1);
 }
 
 .sheet-panel h3 {
-  margin-top: 0;
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
 }
 
 .sheet-panel p {
+  margin: 0 0 10px;
   color: var(--ink-700);
+  line-height: 1.7;
 }
 
 @media print {

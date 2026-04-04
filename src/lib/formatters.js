@@ -22,7 +22,7 @@ export function formatCurrency(value) {
 export function getStatusTone(status = '') {
   if (['Delivered'].includes(status)) return 'success';
   if (['Cancelled', 'Exception'].includes(status)) return 'danger';
-  if (['Delayed'].includes(status)) return 'warning';
-  if (['In Transit', 'Out for Delivery', 'Picked Up', 'Assigned'].includes(status)) return 'info';
+  if (['Requested', 'Approved', 'Scheduled'].includes(status)) return 'info';
+  if (['Assigned', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delayed'].includes(status)) return 'warning';
   return 'muted';
 }

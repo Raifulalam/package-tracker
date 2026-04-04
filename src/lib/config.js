@@ -1,5 +1,5 @@
 const fallbackApiBaseUrl = import.meta.env.DEV
-  ? 'http://localhost:5000'
+  ? 'http://localhost:5001'
   : 'https://courier-tracking-system-pnj7.onrender.com';
 
 export const API_BASE_URL =

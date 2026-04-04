@@ -38,8 +38,12 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     const error = new Error(
-      payload?.message || payload?.msg || `API request failed for ${method} ${requestUrl}.`
+      payload?.message ||
+        payload?.msg ||
+        (typeof payload === 'string' && payload.trim()) ||
+        `API request failed for ${method} ${requestUrl}.`
     );
+    error.status = response.status;
     error.payload = payload;
     throw error;
   }

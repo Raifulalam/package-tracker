@@ -57,10 +57,16 @@ const TrackDelivery = () => {
     documentTitle: pkg ? `${pkg.trackingNumber}-shipment-record` : 'shipment-record',
   });
 
+  const isReceiverView = user?.role === 'receiver';
+
   return (
     <PortalShell
-      title="Shipment Timeline"
-      subtitle="Review the full operational history for a shipment, including assignment, route progress, and delivery milestones."
+      title={isReceiverView ? 'Parcel Timeline' : 'Shipment Timeline'}
+      subtitle={
+        isReceiverView
+          ? 'Follow the latest handoff, route progress, and delivery milestones for an incoming parcel linked to your account.'
+          : 'Review the full operational history for a shipment, including assignment, route progress, and delivery milestones.'
+      }
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
@@ -72,7 +78,7 @@ const TrackDelivery = () => {
         <>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
             <button className="button-primary" onClick={handlePrint} type="button">
-              Print shipment summary
+              {isReceiverView ? 'Print parcel summary' : 'Print shipment summary'}
             </button>
           </div>
 
@@ -87,7 +93,7 @@ const TrackDelivery = () => {
 
             <div className="shipment-grid">
               <section className="sheet-panel">
-                <h3>Receiver profile</h3>
+                <h3>{isReceiverView ? 'Delivery contact' : 'Receiver profile'}</h3>
                 <p><strong>Name:</strong> {pkg.receiverName}</p>
                 <p><strong>Phone:</strong> {pkg.receiverPhone}</p>
                 <p><strong>Email:</strong> {pkg.receiverEmail || 'Not provided'}</p>

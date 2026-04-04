@@ -2,24 +2,24 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
-import { api } from '../lib/api';
-import { formatCurrency, formatDateTime } from '../lib/formatters';
-import { getSocket } from '../lib/socket';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
+import { formatDateTime } from '../lib/formatters';
+import { getSocket } from '../lib/socket';
 
 const emptyDashboard = {
   stats: { total: 0, pending: 0, active: 0, delivered: 0, cancelled: 0 },
-  recentPackages: [],
-  upcomingDeliveries: [],
+  incomingPackages: [],
+  activePackages: [],
 };
 
-const senderViews = [
-  ['overview', 'Overview', 'OV', 'Booking summary and quick actions'],
-  ['shipments', 'Shipments', 'SH', 'Recent and active outgoing parcels'],
-  ['profile', 'Profile', 'PF', 'Account details and operational shortcuts'],
+const receiverViews = [
+  ['overview', 'Overview', 'OV', 'Incoming parcel summary and shortcuts'],
+  ['parcels', 'Parcels', 'PR', 'Recent incoming and active deliveries'],
+  ['profile', 'Profile', 'PF', 'Receiver account and settings links'],
 ];
 
-const SenderDashboard = () => {
+const ReceiverDashboard = () => {
   const { user } = useAuth();
   const [dashboard, setDashboard] = useState(emptyDashboard);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,8 @@ const SenderDashboard = () => {
 
     const loadDashboard = async () => {
       try {
-        const response = await api.get('/api/package/sender-dashboard', { token: user.token });
+        const response = await api.get('/api/package/receiver-dashboard', { token: user.token });
+
         if (active) {
           setDashboard(response.data || emptyDashboard);
           setError('');
@@ -56,13 +57,13 @@ const SenderDashboard = () => {
   }, [user.token]);
 
   const statCards = useMemo(() => [
-    ['Total shipments', dashboard.stats.total, 'info', 'TS', 'Every booking created under your ParcelOps account'],
-    ['Pending action', dashboard.stats.pending, 'warning', 'PA', 'Shipments awaiting review, scheduling, or dispatch'],
-    ['In progress', dashboard.stats.active, 'warning', 'IP', 'Parcels currently moving through the network'],
-    ['Delivered', dashboard.stats.delivered, 'success', 'DL', 'Completed shipments with confirmed delivery status'],
+    ['Incoming parcels', dashboard.stats.total, 'info', 'IP', 'All shipments currently matched to your contact details'],
+    ['Awaiting movement', dashboard.stats.pending, 'warning', 'AM', 'Parcels booked or assigned but not yet near final delivery'],
+    ['On the way', dashboard.stats.active, 'warning', 'OW', 'Shipments currently in transit or out for delivery'],
+    ['Delivered', dashboard.stats.delivered, 'success', 'DL', 'Completed deliveries with a confirmed delivery update'],
   ], [dashboard.stats]);
 
-  const activeMeta = senderViews.find(([key]) => key === activeView) || senderViews[0];
+  const activeMeta = receiverViews.find(([key]) => key === activeView) || receiverViews[0];
 
   const renderOverview = () => (
     <>
@@ -85,22 +86,22 @@ const SenderDashboard = () => {
         <article className="glass-card section-card" style={{ gridColumn: 'span 8' }}>
           <div className="admin-section-head">
             <div>
-              <h2>Sender Shortcuts</h2>
-              <p>Jump directly into the most common booking and shipment actions.</p>
+              <h2>Receiver Shortcuts</h2>
+              <p>Quick links for tracking and incoming parcel visibility.</p>
             </div>
           </div>
           <div className="workspace-action-grid">
-            <Link className="workspace-action-card" to="/sender/create">
-              <strong>Create Shipment</strong>
-              <span>Open a new booking request and generate a fresh delivery order.</span>
+            <Link className="workspace-action-card" to="/track">
+              <strong>Track by Number</strong>
+              <span>Open public tracking when you already have the shipment code.</span>
             </Link>
-            <Link className="workspace-action-card" to="/sender/my-packages">
-              <strong>Shipment Register</strong>
-              <span>Review every outbound parcel with tracking, status, and route details.</span>
-            </Link>
+            <button className="workspace-action-card" onClick={() => setActiveView('parcels')} type="button">
+              <strong>View Incoming Parcels</strong>
+              <span>See every parcel matched to your receiver contact details.</span>
+            </button>
             <Link className="workspace-action-card" to="/settings">
-              <strong>Profile Settings</strong>
-              <span>Maintain accurate contact details and operating city for pricing and dispatch.</span>
+              <strong>Open Profile Settings</strong>
+              <span>Keep your phone and location details accurate for parcel matching.</span>
             </Link>
           </div>
         </article>
@@ -108,31 +109,31 @@ const SenderDashboard = () => {
         <article className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
           <div className="admin-section-head compact">
             <div>
-              <h2>Live Queue</h2>
-              <p>Current active shipments in motion.</p>
+              <h2>Active Deliveries</h2>
+              <p>Shipments currently moving toward final delivery.</p>
             </div>
           </div>
           {loading ? (
-            <div className="empty-state">Loading active queue...</div>
-          ) : dashboard.upcomingDeliveries.length === 0 ? (
-            <div className="empty-state">No active shipments right now.</div>
+            <div className="empty-state">Loading active delivery feed...</div>
+          ) : dashboard.activePackages.length === 0 ? (
+            <div className="empty-state">No active incoming deliveries right now.</div>
           ) : (
             <div className="package-stack">
-              {dashboard.upcomingDeliveries.slice(0, 3).map((pkg) => (
-                <div className="package-item" key={pkg._id}>
+              {dashboard.activePackages.slice(0, 3).map((pkg) => (
+                <article className="package-item" key={pkg._id}>
                   <div className="package-topline">
                     <div>
                       <strong>{pkg.trackingNumber}</strong>
-                      <p style={{ margin: '6px 0 0' }}>{pkg.receiverName}</p>
+                      <p style={{ margin: '8px 0 0' }}>{pkg.deliveryAddress}</p>
                     </div>
                     <StatusBadge status={pkg.status} />
                   </div>
-                  <div className="package-meta" style={{ marginTop: 12 }}>
-                    <span>Destination: {pkg.deliveryAddress}</span>
+                  <div className="package-meta" style={{ marginTop: 14 }}>
+                    <span>From: {pkg.pickupAddress}</span>
+                    <span>Courier: {pkg.assignedAgent?.name || 'Assignment pending'}</span>
                     <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
-                    <span>Charge: {formatCurrency(pkg.shippingCharge)}</span>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
@@ -141,40 +142,51 @@ const SenderDashboard = () => {
     </>
   );
 
-  const renderShipments = () => (
+  const renderParcels = () => (
     <section className="dashboard-grid admin-dashboard-main">
       <article className="glass-card section-card" style={{ gridColumn: 'span 7' }}>
         <div className="package-topline" style={{ marginBottom: 18 }}>
           <div>
-            <h2>Recent Shipments</h2>
-            <p>Your latest ParcelOps bookings with live delivery visibility.</p>
+            <h2>Recent Incoming Parcels</h2>
+            <p>Every ParcelOps shipment currently linked to your registered email or phone number.</p>
           </div>
-          <Link className="button-primary" to="/sender/create">
-            New shipment
+          <Link className="button-secondary" to="/track">
+            Track by number
           </Link>
         </div>
 
         {loading ? (
-          <div className="empty-state">Loading your shipment workspace...</div>
-        ) : dashboard.recentPackages.length === 0 ? (
-          <div className="empty-state">No shipments yet. Create your first delivery request to get started.</div>
+          <div className="empty-state">Loading incoming shipments...</div>
+        ) : dashboard.incomingPackages.length === 0 ? (
+          <div className="empty-state">
+            No incoming parcels are linked to this account yet. Make sure your receiver email or phone matches the shipment details.
+          </div>
         ) : (
           <div className="package-stack">
-            {dashboard.recentPackages.map((pkg) => (
+            {dashboard.incomingPackages.map((pkg) => (
               <article className="package-item" key={pkg._id}>
                 <div className="package-topline">
                   <div>
                     <strong>{pkg.trackingNumber}</strong>
-                    <p style={{ margin: '8px 0 0' }}>{pkg.receiverName}</p>
+                    <p style={{ margin: '8px 0 0' }}>{pkg.senderSnapshot?.name || 'ParcelOps sender'}</p>
                   </div>
                   <StatusBadge status={pkg.status} />
                 </div>
 
                 <div className="package-meta" style={{ marginTop: 14 }}>
-                  <span>Receiver phone: {pkg.receiverPhone}</span>
-                  <span>Pickup: {pkg.pickupAddress}</span>
-                  <span>Destination: {pkg.deliveryAddress}</span>
-                  <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
+                  <span>Pickup origin: {pkg.pickupAddress}</span>
+                  <span>Delivery address: {pkg.deliveryAddress}</span>
+                  <span>Estimated arrival: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
+                  <span>Item type: {pkg.itemType}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
+                  <Link className="button-primary" to={`/receiver/track/${pkg._id}`}>
+                    View timeline
+                  </Link>
+                  <Link className="button-secondary" to={`/track?tracking=${pkg.trackingNumber}`}>
+                    Public tracking
+                  </Link>
                 </div>
               </article>
             ))}
@@ -183,33 +195,30 @@ const SenderDashboard = () => {
       </article>
 
       <aside className="glass-card section-card" style={{ gridColumn: 'span 5' }}>
-        <h2>Active Delivery Queue</h2>
-        <p>Parcels currently moving through pickup, transit, or final-mile delivery.</p>
+        <h2>Active Deliveries</h2>
+        <p>Incoming shipments still moving through the ParcelOps delivery network.</p>
 
         {loading ? (
-          <div className="empty-state">Loading active deliveries...</div>
-        ) : dashboard.upcomingDeliveries.length === 0 ? (
-          <div className="empty-state">No active shipments right now.</div>
+          <div className="empty-state">Loading active delivery feed...</div>
+        ) : dashboard.activePackages.length === 0 ? (
+          <div className="empty-state">No active incoming deliveries right now.</div>
         ) : (
           <div className="package-stack">
-            {dashboard.upcomingDeliveries.map((pkg) => (
-              <div className="package-item" key={pkg._id}>
+            {dashboard.activePackages.map((pkg) => (
+              <article className="package-item" key={pkg._id}>
                 <div className="package-topline">
                   <div>
                     <strong>{pkg.trackingNumber}</strong>
-                    <p style={{ margin: '6px 0 0' }}>{pkg.receiverName}</p>
+                    <p style={{ margin: '8px 0 0' }}>{pkg.deliveryAddress}</p>
                   </div>
                   <StatusBadge status={pkg.status} />
                 </div>
-                <div className="package-meta" style={{ marginTop: 12 }}>
-                  <span>Destination: {pkg.deliveryAddress}</span>
+                <div className="package-meta" style={{ marginTop: 14 }}>
+                  <span>From: {pkg.pickupAddress}</span>
+                  <span>Courier: {pkg.assignedAgent?.name || 'Assignment pending'}</span>
                   <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
-                  <span>Charge: {formatCurrency(pkg.shippingCharge)}</span>
                 </div>
-                <Link className="button-secondary" style={{ marginTop: 14, display: 'inline-flex' }} to={`/sender/track/${pkg._id}`}>
-                  Open shipment view
-                </Link>
-              </div>
+              </article>
             ))}
           </div>
         )}
@@ -222,14 +231,14 @@ const SenderDashboard = () => {
       <article className="glass-card section-card" style={{ gridColumn: 'span 8' }}>
         <div className="admin-section-head">
           <div>
-            <h2>Sender Profile</h2>
-            <p>Primary account details used for dispatch visibility, pricing, and shipment communication.</p>
+            <h2>Receiver Profile</h2>
+            <p>Contact details used to match incoming shipments to your account.</p>
           </div>
         </div>
         <div className="settings-summary-grid">
-          <div className="settings-summary-item"><span>Name</span><strong>{user?.name || 'ParcelOps Sender'}</strong></div>
+          <div className="settings-summary-item"><span>Name</span><strong>{user?.name || 'ParcelOps Receiver'}</strong></div>
           <div className="settings-summary-item"><span>Email</span><strong>{user?.email || 'Not available'}</strong></div>
-          <div className="settings-summary-item"><span>Hub</span><strong>{user?.hub || 'Not set'}</strong></div>
+          <div className="settings-summary-item"><span>Phone</span><strong>{user?.phone || 'Not set'}</strong></div>
           <div className="settings-summary-item"><span>City</span><strong>{user?.city || 'Not set'}</strong></div>
         </div>
       </article>
@@ -237,40 +246,34 @@ const SenderDashboard = () => {
       <article className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
         <div className="admin-section-head">
           <div>
-            <h2>Account Actions</h2>
-            <p>Open the settings page or create a fresh booking.</p>
+            <h2>Receiver Actions</h2>
+            <p>Access settings or tracking from one place.</p>
           </div>
         </div>
         <div className="workspace-action-list">
           <Link className="button-primary" to="/settings">Open settings</Link>
-          <Link className="button-secondary" to="/sender/create">Create shipment</Link>
-          <Link className="button-secondary" to="/sender/my-packages">Open shipment register</Link>
+          <button className="button-secondary" onClick={() => setActiveView('parcels')} type="button">Open parcel view</button>
+          <Link className="button-secondary" to="/track">Track by number</Link>
         </div>
       </article>
     </section>
   );
 
-  const renderView = () => {
-    if (activeView === 'shipments') return renderShipments();
-    if (activeView === 'profile') return renderProfile();
-    return renderOverview();
-  };
-
   return (
     <PortalShell
-      title="Sender Workspace"
-      subtitle="Create bookings, monitor delivery progress, and manage every outgoing parcel from one structured sender workspace."
+      title="Receiver Workspace"
+      subtitle="Stay informed on incoming deliveries, follow live ETA updates, and open detailed parcel timelines the moment something is on the way."
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
       <section className="glass-card section-card admin-workspace-header">
         <div className="admin-workspace-copy">
-          <div className="admin-workspace-eyebrow">Sender Workspace</div>
+          <div className="admin-workspace-eyebrow">Receiver Workspace</div>
           <h2>{activeMeta[1]}</h2>
           <p>{activeMeta[3]}</p>
         </div>
         <nav className="admin-view-nav">
-          {senderViews.map(([key, label, icon]) => (
+          {receiverViews.map(([key, label, icon]) => (
             <button
               className={`admin-view-tab${activeView === key ? ' active' : ''}`}
               key={key}
@@ -285,10 +288,10 @@ const SenderDashboard = () => {
       </section>
 
       <div className="admin-tab-panel" style={{ marginTop: 18 }}>
-        {renderView()}
+        {activeView === 'parcels' ? renderParcels() : activeView === 'profile' ? renderProfile() : renderOverview()}
       </div>
     </PortalShell>
   );
 };
 
-export default SenderDashboard;
+export default ReceiverDashboard;

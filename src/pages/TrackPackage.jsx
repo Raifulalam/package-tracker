@@ -55,13 +55,36 @@ const TrackPackage = () => {
   }, [shipment?.trackingNumber]);
 
   return (
-    <div className="auth-shell" style={{ alignItems: 'start' }}>
-      <section className="auth-card" style={{ width: 'min(760px, 100%)' }}>
-        <span className="auth-eyebrow">Public parcel tracking</span>
-        <h2>Track any live shipment with its tracking number.</h2>
-        <p>Use the customer-facing tracking number to view current status, courier progress, and delivery milestones.</p>
+    <div className="auth-shell tracking-shell">
+      <section className="auth-showcase">
+        <span className="auth-showcase-badge">Public Tracking</span>
+        <h1>Track every ParcelOps delivery in real time.</h1>
+        <p>
+          Enter a tracking number to view the latest shipment status, delivery route, courier assignment, and milestone history in one clear tracking experience.
+        </p>
 
-        <div className="tracking-search" style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+        <div className="auth-showcase-grid">
+          <article>
+            <strong>Live tracking updates</strong>
+            <span>Shipment progress updates appear as soon as the ParcelOps operations team records them.</span>
+          </article>
+          <article>
+            <strong>Complete delivery context</strong>
+            <span>See route type, ETA, assigned courier, and delivery progress without switching screens.</span>
+          </article>
+          <article>
+            <strong>Fast public access</strong>
+            <span>No login required, just a clean and reliable tracking page customers can trust.</span>
+          </article>
+        </div>
+      </section>
+
+      <section className="auth-card auth-card-wide tracking-card">
+        <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
+        <h2>Track your shipment.</h2>
+        <p>Use your ParcelOps tracking number to see live status, route progress, and delivery milestones.</p>
+
+        <div className="tracking-search">
           <input
             placeholder="Enter tracking number, for example PTR-20260330-ABC123"
             value={trackingNumber}

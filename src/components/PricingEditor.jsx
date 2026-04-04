@@ -1,13 +1,13 @@
 import { formatCurrency } from '../lib/formatters';
 
 const pricingFields = [
-  { name: 'sameCity', label: 'Same city base' },
-  { name: 'sameDistrict', label: 'Same district base' },
-  { name: 'sameProvince', label: 'Same province base' },
-  { name: 'differentProvince', label: 'Different province base' },
-  { name: 'perKgRate', label: 'Per kg rate' },
-  { name: 'expressMultiplier', label: 'Express multiplier', step: '0.01' },
-  { name: 'codCharge', label: 'COD charge' },
+  { name: 'sameCity', label: 'Same-city base fare', note: 'Local runs inside one city' },
+  { name: 'sameDistrict', label: 'Same-district base fare', note: 'Short-haul district routes' },
+  { name: 'sameProvince', label: 'Same-province base fare', note: 'Intercity within one province' },
+  { name: 'differentProvince', label: 'Cross-province base fare', note: 'Long-distance network movement' },
+  { name: 'perKgRate', label: 'Per kg uplift', note: 'Applied on weight-based pricing' },
+  { name: 'expressMultiplier', label: 'Express multiplier', step: '0.01', note: 'Boost for priority service' },
+  { name: 'codCharge', label: 'COD service fee', note: 'Cash collection handling fee' },
 ];
 
 const PricingEditor = ({
@@ -17,18 +17,20 @@ const PricingEditor = ({
   loading,
   disabled = false,
 }) => (
-  <article className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
-    <div className="package-topline" style={{ marginBottom: 18 }}>
+  <article className="glass-card section-card pricing-editor-card">
+    <div className="pricing-editor-head">
       <div>
-        <h2>Pricing engine</h2>
-        <p>Control live base rates, express uplift, and COD surcharges for the whole network.</p>
+        <h2>Pricing Settings</h2>
+        <p>Control route pricing, express uplift, and COD service fees for the ParcelOps delivery network.</p>
       </div>
+      <div className="pricing-editor-chip">Admin only</div>
     </div>
 
-    <form className="form-grid" onSubmit={onSubmit}>
+    <form className="pricing-editor-grid" onSubmit={onSubmit}>
       {pricingFields.map((field) => (
-        <label className="field-group" key={field.name}>
+        <label className="field-group pricing-editor-field" key={field.name}>
           <span>{field.label}</span>
+          <small>{field.note}</small>
           <input
             disabled={disabled}
             min="0"
@@ -41,18 +43,40 @@ const PricingEditor = ({
         </label>
       ))}
 
-      <div className="full-span pricing-rules">
-        <strong>Rate ladder</strong>
-        <span>Same city: {formatCurrency(pricing.sameCity)}</span>
-        <span>Same district: {formatCurrency(pricing.sameDistrict)}</span>
-        <span>Same province: {formatCurrency(pricing.sameProvince)}</span>
-        <span>Different province: {formatCurrency(pricing.differentProvince)}</span>
-        <span>Per kg: {formatCurrency(pricing.perKgRate)}</span>
-        <span>COD: {formatCurrency(pricing.codCharge)}</span>
+      <div className="full-span pricing-rules pricing-rules-grid">
+        <strong>Active rate summary</strong>
+        <div className="pricing-rule-item">
+          <span>Same city</span>
+          <b>{formatCurrency(pricing.sameCity)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>Same district</span>
+          <b>{formatCurrency(pricing.sameDistrict)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>Same province</span>
+          <b>{formatCurrency(pricing.sameProvince)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>Cross province</span>
+          <b>{formatCurrency(pricing.differentProvince)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>Per kg uplift</span>
+          <b>{formatCurrency(pricing.perKgRate)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>COD service fee</span>
+          <b>{formatCurrency(pricing.codCharge)}</b>
+        </div>
+        <div className="pricing-rule-item">
+          <span>Express multiplier</span>
+          <b>{pricing.expressMultiplier}x</b>
+        </div>
       </div>
 
       <button className="button-primary full-span" disabled={disabled || loading} type="submit">
-        {loading ? 'Saving pricing...' : 'Save pricing'}
+        {loading ? 'Saving pricing settings...' : 'Save pricing settings'}
       </button>
     </form>
   </article>

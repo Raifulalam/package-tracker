@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import MyPackages from './pages/MyPackage';
 import NewDelivery from './pages/NewDelivery';
 import Profile from './pages/Profile';
+import ReceiverDashboard from './pages/ReceiverDashboard';
 import Register from './pages/Register';
 import SenderDashboard from './pages/SenderDashboard';
 import TrackDelivery from './pages/TrackDelivery';
@@ -58,6 +59,22 @@ function App() {
               }
             />
             <Route
+              path="/receiver"
+              element={
+                <ProtectedRoute roles={['receiver']}>
+                  <ReceiverDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/receiver/track/:id"
+              element={
+                <ProtectedRoute roles={['receiver']}>
+                  <TrackDelivery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/agent"
               element={
                 <ProtectedRoute roles={['agent']}>
@@ -76,7 +93,7 @@ function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute roles={['sender', 'agent', 'admin']}>
+              <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
                 <Profile />
               </ProtectedRoute>
             }
