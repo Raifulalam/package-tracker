@@ -37,8 +37,8 @@
 .landing-topbar,
 .landing-main {
   position: relative;
-  width: min(1180px, 100%);
-  margin: 0 auto;
+  width: min(100%);
+  margin: 0;
 }
 
 .landing-topbar {
@@ -47,7 +47,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 14px 18px;
+  padding: 7px 10px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(16px);
@@ -72,9 +72,7 @@
   flex-wrap: wrap;
 }
 
-.landing-topbar-button {
-  min-width: 146px;
-}
+
 
 .landing-main {
   display: grid;
@@ -125,16 +123,16 @@
 .landing-copy h1,
 .landing-section-head h2,
 .landing-showcase-copy h2 {
-  margin: 18px 0 0;
+  margin: 6px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-size: clamp(1.7rem, 6vw, 3rem);
   line-height: 0.92;
   letter-spacing: -0.06em;
 }
 
 .landing-section-head h2,
 .landing-showcase-copy h2 {
-  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
 }
 
 .landing-lead,
@@ -143,8 +141,8 @@
 .landing-workflow-card p {
   margin: 18px 0 0;
   color: var(--ink-700);
-  line-height: 1.8;
-  font-size: 1rem;
+
+
 }
 
 .landing-actions {
@@ -344,19 +342,21 @@
 @media (max-width: 640px) {
   .landing-topbar {
     align-items: stretch;
-    flex-direction: column;
+
   }
+
+
 
   .landing-topbar-actions,
   .landing-actions {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .landing-copy,
   .landing-section,
   .landing-showcase,
   .landing-device-frame {
-    padding: 22px;
+    padding: 12px;
     border-radius: 26px;
   }
 
