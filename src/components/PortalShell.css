@@ -221,7 +221,7 @@
 
 @media (max-width: 720px) {
   .portal-shell {
-    padding: 16px 14px calc(104px + env(safe-area-inset-bottom, 0px));
+    padding: 0px;
   }
 
   .portal-header {
@@ -230,17 +230,23 @@
   }
 
   .portal-nav {
-    position: fixed;
-    right: 14px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    left: 14px;
-    top: auto;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    border-radius: 24px;
-  }
+    position: sticky;
+    top: 16px;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 10px;
 
-  .portal-navlink {
-    min-height: 48px;
-    font-size: 0.88rem;
+    padding: 2px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow: var(--shadow-md);
   }
+}
+
+.portal-navlink {
+  max-height: 48px;
+  font-size: 12px;
 }

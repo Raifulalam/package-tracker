@@ -65,7 +65,7 @@ export default function LandingPage() {
 
       <header className="landing-topbar">
         <button className="landing-brand" onClick={() => navigate('/')} type="button">
-          ParcelOps
+          <img src="/logo.png" alt="logo" />
         </button>
         <div className="landing-topbar-actions">
           <button className="button-ghost landing-topbar-button" onClick={handleTracking} type="button">
@@ -83,7 +83,7 @@ export default function LandingPage() {
             <span className="landing-eyebrow">Deliver Faster. Track Smarter.</span>
             <h1>Reliable parcel delivery for businesses and customers across Nepal.</h1>
             <p className="landing-lead">
-              ParcelOps helps teams book shipments, dispatch riders, monitor parcel movement, and keep customers informed in real time from Kathmandu to Pokhara, Birgunj, and every major route in between.
+              NepXpress helps teams book shipments, dispatch riders, monitor parcel movement, and keep customers informed in real time from Kathmandu to Pokhara, Birgunj, and every major route in between.
             </p>
 
             <div className="landing-actions">
@@ -108,7 +108,7 @@ export default function LandingPage() {
           <div className="landing-device">
             <div className="landing-device-frame">
               <div className="landing-device-status">
-                <span>ParcelOps Network</span>
+                <span>NepXpress Network</span>
                 <strong>Live delivery control</strong>
               </div>
               <div className="landing-device-video-wrap">
@@ -141,7 +141,7 @@ export default function LandingPage() {
 
         <section className="landing-section landing-section-wide">
           <div className="landing-section-head">
-            <span className="landing-section-kicker">Why ParcelOps</span>
+            <span className="landing-section-kicker">Why NepXpress</span>
             <h2>Everything a modern delivery platform needs, in one trusted workflow.</h2>
           </div>
 
@@ -160,11 +160,8 @@ export default function LandingPage() {
             <span className="landing-section-kicker">Built for daily operations</span>
             <h2>Clear workflows for senders, receivers, agents, and operations teams.</h2>
             <p>
-              From public parcel tracking to internal delivery management, ParcelOps is designed to feel fast, dependable, and easy to use on both mobile and desktop.
+              From public parcel tracking to internal delivery management, NepXpress is designed to feel fast, dependable, and easy to use on both mobile and desktop.
             </p>
-          </div>
-
-          <div className="landing-panel landing-showcase-panel">
             <div className="landing-showcase-list">
               <article>
                 <span>Sender</span>
@@ -184,11 +181,17 @@ export default function LandingPage() {
               </article>
             </div>
           </div>
+
+          <div className="landing-panel landing-showcase-panel">
+            <div className="landing-showcase-list">
+              <img src="/showcase.png" alt="" />
+            </div>
+          </div>
         </section>
 
         <section className="landing-section">
           <div className="landing-section-head">
-            <span className="landing-section-kicker">How ParcelOps works</span>
+            <span className="landing-section-kicker">How NepXpress works</span>
             <h2>From booking to doorstep, every delivery step stays visible.</h2>
           </div>
 

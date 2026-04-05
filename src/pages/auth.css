@@ -1,24 +1,68 @@
 .auth-showcase {
+  display: flex;
+  align-items: end;
+  width: 100%;
+
   position: relative;
   overflow: hidden;
-  padding: 34px;
-  border-radius: 32px;
+  padding: 40px;
+  border-radius: 28px;
+
+  /* Layered background (image + gradient overlay) */
   background:
-    linear-gradient(165deg, #152736 0%, #21384d 45%, #244c4f 100%);
-  color: white;
-  box-shadow: 0 28px 70px rgba(18, 29, 44, 0.24);
+    linear-gradient(160deg, rgba(21, 39, 54, 0.62), rgba(36, 76, 79, 0.78)),
+    url("/showcase1.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: #ffffff;
+
+  /* Glass + depth effect */
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  transition: all 0.4s ease;
 }
 
+/* Hover effect for premium feel */
+.auth-showcase:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Optional overlay glow */
 .auth-showcase::before {
   content: "";
   position: absolute;
-  inset: auto -60px -60px auto;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: rgba(239, 131, 84, 0.14);
-  filter: blur(4px);
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(0, 255, 200, 0.15), transparent 40%);
+  pointer-events: none;
+  filter: blur(3px);
 }
+
+/* Content should be above overlay */
+.auth-showcase>* {
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-showcase {
+    padding: 24px;
+    border-radius: 20px;
+  }
+}
+
+
 
 .auth-showcase-badge {
   display: inline-flex;
@@ -32,6 +76,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.09em;
+
 }
 
 .auth-showcase h1 {
@@ -161,9 +206,7 @@
 }
 
 @media (max-width: 640px) {
-  .auth-shell {
-    padding: 16px;
-  }
+
 
   .auth-showcase,
   .auth-card {

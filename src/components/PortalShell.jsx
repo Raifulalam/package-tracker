@@ -39,7 +39,7 @@ const PortalShell = ({ title, subtitle, children, compactTitle = false, headerUt
   const { user, logout } = useAuth();
 
   const navItems = navigationByRole[user?.role || 'sender'] || navigationByRole.sender;
-  const initials = (user?.name || 'Parcel Ops')
+  const initials = (user?.name || 'NepXpress')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -58,7 +58,7 @@ const PortalShell = ({ title, subtitle, children, compactTitle = false, headerUt
         <div className="portal-heading">
           <div className="portal-chip-list">
             <button className="portal-brand" onClick={() => navigate(resolveHome(user?.role))} type="button">
-              ParcelOps
+              NepXpress
             </button>
             <span className="portal-chip">Deliver Faster. Track Smarter.</span>
           </div>
@@ -72,7 +72,7 @@ const PortalShell = ({ title, subtitle, children, compactTitle = false, headerUt
             {initials}
           </div>
           <div className="portal-usercopy">
-            <strong>{user?.name || 'ParcelOps User'}</strong>
+            <strong>{user?.name || 'NepXpress User'}</strong>
             <span>{user?.role || 'workspace'}</span>
             {user?.city ? <span>{user.city}</span> : null}
             {user?.email ? <span>{user.email}</span> : null}
