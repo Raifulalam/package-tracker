@@ -35,7 +35,12 @@
   box-shadow: var(--shadow-lg);
 }
 
+.portal-header img {
+  width: 180px;
+}
+
 .portal-heading {
+
   flex: 1;
 }
 
@@ -101,7 +106,7 @@
 }
 
 .portal-userbox {
-  width: min(300px, 100%);
+  width: min(500px, 100%);
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;

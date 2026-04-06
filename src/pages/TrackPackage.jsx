@@ -64,82 +64,71 @@ const TrackPackage = () => {
         </p>
 
         <div className="auth-showcase-grid">
-          <article>
-            <strong>Live tracking updates</strong>
-            <span>Shipment progress updates appear as soon as the ParcelOps operations team records them.</span>
-          </article>
-          <article>
-            <strong>Complete delivery context</strong>
-            <span>See route type, ETA, assigned courier, and delivery progress without switching screens.</span>
-          </article>
-          <article>
-            <strong>Fast public access</strong>
-            <span>No login required, just a clean and reliable tracking page customers can trust.</span>
-          </article>
-        </div>
-      </section>
+          <section className="auth-card auth-card-wide tracking-card">
+            <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
+            <h2>Track your shipment.</h2>
+            <p>Use your ParcelOps tracking number to see live status, route progress, and delivery milestones.</p>
 
-      <section className="auth-card auth-card-wide tracking-card">
-        <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
-        <h2>Track your shipment.</h2>
-        <p>Use your ParcelOps tracking number to see live status, route progress, and delivery milestones.</p>
+            <div className="tracking-search">
+              <input
+                placeholder="Enter tracking number, for example PTR-20260330-ABC123"
+                value={trackingNumber}
+                onChange={(event) => setTrackingNumber(event.target.value)}
+              />
+              <button className="button-primary" onClick={() => loadTracking()} type="button">
+                {loading ? 'Tracking...' : 'Track shipment'}
+              </button>
+            </div>
 
-        <div className="tracking-search">
-          <input
-            placeholder="Enter tracking number, for example PTR-20260330-ABC123"
-            value={trackingNumber}
-            onChange={(event) => setTrackingNumber(event.target.value)}
-          />
-          <button className="button-primary" onClick={() => loadTracking()} type="button">
-            {loading ? 'Tracking...' : 'Track shipment'}
-          </button>
-        </div>
+            {error ? <div className="auth-error" style={{ marginTop: 18 }}>{error}</div> : null}
 
-        {error ? <div className="auth-error" style={{ marginTop: 18 }}>{error}</div> : null}
-
-        {shipment ? (
-          <div className="package-stack" style={{ marginTop: 22 }}>
-            <article className="package-item">
-              <div className="package-topline">
-                <div>
-                  <strong>{shipment.trackingNumber}</strong>
-                  <p style={{ margin: '8px 0 0' }}>{shipment.receiverName}</p>
-                </div>
-                <StatusBadge status={shipment.status} />
-              </div>
-
-              <div className="package-meta" style={{ marginTop: 14 }}>
-                <span>Pickup: {shipment.pickupAddress}</span>
-                <span>Destination: {shipment.deliveryAddress}</span>
-                <span>Charge: {formatCurrency(shipment.shippingCharge)}</span>
-                <span>Route tier: {getRouteLabel(shipment.pricingSnapshot?.routeType)}</span>
-                <span>Estimated delivery: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
-                <span>Assigned courier: {shipment.assignedAgent?.name || 'Pending assignment'}</span>
-              </div>
-            </article>
-
-            <article className="package-item">
-              <h3 style={{ marginTop: 0 }}>Shipment timeline</h3>
-              <div className="timeline">
-                {shipment.statusUpdates?.map((update, index) => (
-                  <div className="timeline-row" key={`${update.status}-${index}`}>
-                    <div className="timeline-dot" />
-                    <div className="timeline-content">
-                      <strong>{update.label || update.status}</strong>
-                      <small>{formatDateTime(update.timestamp)}</small>
-                      <p>{update.note || 'Operational event recorded.'}</p>
+            {shipment ? (
+              <div className="package-stack" style={{ marginTop: 22 }}>
+                <article className="package-item">
+                  <div className="package-topline">
+                    <div>
+                      <strong>{shipment.trackingNumber}</strong>
+                      <p style={{ margin: '8px 0 0' }}>{shipment.receiverName}</p>
                     </div>
+                    <StatusBadge status={shipment.status} />
                   </div>
-                ))}
-              </div>
-            </article>
-          </div>
-        ) : null}
 
-        <p className="auth-footer" style={{ marginTop: 22 }}>
-          Need role-based access? <Link to="/login">Sign in to ParcelOps</Link>
-        </p>
+                  <div className="package-meta" style={{ marginTop: 14 }}>
+                    <span>Pickup: {shipment.pickupAddress}</span>
+                    <span>Destination: {shipment.deliveryAddress}</span>
+                    <span>Charge: {formatCurrency(shipment.shippingCharge)}</span>
+                    <span>Route tier: {getRouteLabel(shipment.pricingSnapshot?.routeType)}</span>
+                    <span>Estimated delivery: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
+                    <span>Assigned courier: {shipment.assignedAgent?.name || 'Pending assignment'}</span>
+                  </div>
+                </article>
+
+                <article className="package-item">
+                  <h3 style={{ marginTop: 0 }}>Shipment timeline</h3>
+                  <div className="timeline">
+                    {shipment.statusUpdates?.map((update, index) => (
+                      <div className="timeline-row" key={`${update.status}-${index}`}>
+                        <div className="timeline-dot" />
+                        <div className="timeline-content">
+                          <strong>{update.label || update.status}</strong>
+                          <small>{formatDateTime(update.timestamp)}</small>
+                          <p>{update.note || 'Operational event recorded.'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </div>
+            ) : null}
+
+            <p className="auth-footer" style={{ marginTop: 22 }}>
+              Need role-based access? <Link to="/login">Sign in to ParcelOps</Link>
+            </p>
+          </section>
+        </div>
       </section>
+
+
     </div>
   );
 };

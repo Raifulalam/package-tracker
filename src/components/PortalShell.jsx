@@ -58,7 +58,7 @@ const PortalShell = ({ title, subtitle, children, compactTitle = false, headerUt
         <div className="portal-heading">
           <div className="portal-chip-list">
             <button className="portal-brand" onClick={() => navigate(resolveHome(user?.role))} type="button">
-              NepXpress
+              <img src="/logo.png" alt="logo" />
             </button>
             <span className="portal-chip">Deliver Faster. Track Smarter.</span>
           </div>
