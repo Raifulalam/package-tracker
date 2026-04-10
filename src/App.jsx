@@ -8,6 +8,7 @@ import LandingPage from './pages/LandinPage';
 import Login from './pages/Login';
 import MyPackages from './pages/MyPackage';
 import NewDelivery from './pages/NewDelivery';
+import PaymentPage from './pages/PaymentPage';
 import Profile from './pages/Profile';
 import ReceiverDashboard from './pages/ReceiverDashboard';
 import Register from './pages/Register';
@@ -75,6 +76,14 @@ function App() {
               }
             />
             <Route
+              path="/shipments/:id"
+              element={
+                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                  <TrackDelivery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/agent"
               element={
                 <ProtectedRoute roles={['agent']}>
@@ -82,24 +91,32 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                  <PaymentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
       </AuthProvider>
     </ToastProvider>
   );

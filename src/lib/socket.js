@@ -13,3 +13,13 @@ export function getSocket() {
 
   return socket;
 }
+
+export function joinSocketPresence(user) {
+  if (!user?.id && !user?._id) return;
+
+  const activeSocket = getSocket();
+  activeSocket.emit('presence:join', {
+    userId: user.id || user._id,
+    role: user.role,
+  });
+}

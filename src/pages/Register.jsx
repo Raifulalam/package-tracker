@@ -1,51 +1,37 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import LocationSelectGroup from '../components/LocationSelectGroup';
 import { useToast } from '../components/ToastProvider';
-import { useLocations } from '../hooks/useLocations';
 import { api } from '../lib/api';
 import './auth.css';
+
+const initialForm = {
+  name: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  state: '',
+  country: 'United States',
+  hub: '',
+  password: '',
+  role: 'sender',
+  adminInviteCode: '',
+};
 
 const Register = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { provinces, getDistricts, getCities, loading: locationsLoading, error: locationsError } = useLocations();
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    hub: '',
-    province: '',
-    district: '',
-    city: '',
-    password: '',
-    role: 'sender',
-    adminInviteCode: '',
-  });
+  const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
-    setForm((prev) => {
-      const nextForm = { ...prev, [name]: value };
-
-      if (name === 'province') {
-        nextForm.district = '';
-        nextForm.city = '';
-      }
-
-      if (name === 'district') {
-        nextForm.city = '';
-      }
-
-      if (name === 'role' && value !== 'admin') {
-        nextForm.adminInviteCode = '';
-      }
-
-      return nextForm;
-    });
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'role' && value !== 'admin' ? { adminInviteCode: '' } : {}),
+    }));
   };
 
   const handleSubmit = async (event) => {
@@ -64,99 +50,46 @@ const Register = () => {
     }
   };
 
-  const districts = getDistricts(form.province);
-  const cities = getCities(form.province, form.district);
-
   return (
     <div className="auth-shell">
       <section className="auth-showcase">
-
-
+        <span className="auth-showcase-badge">Create account</span>
+        <h1>Set up a NexExpree workspace in minutes.</h1>
+        <p>Create a sender, receiver, delivery agent, or admin account with the profile details needed for tracking, handoff verification, and live notifications.</p>
 
         <section className="auth-card auth-card-wide">
-          <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
-          <h2>Create your NepXpress account.</h2>
+          <span className="auth-eyebrow">Onboarding</span>
+          <h2>Create your NexExpree account.</h2>
+          <p>Fill in the contact and location details that will be used for shipment creation, matching, assignments, and delivery confirmation.</p>
 
           <form className="auth-form form-grid" onSubmit={handleSubmit}>
-            <input
-              name="name"
-              placeholder="Full name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-            <input
-              name="email"
-              type="email"
-              placeholder="Email address"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-            <input
-              name="phone"
-              placeholder="Phone number"
-              value={form.phone}
-              onChange={handleChange}
-            />
-            <input
-              name="hub"
-              placeholder="Hub or operating city"
-              value={form.hub}
-              onChange={handleChange}
-            />
-            <select name="role" value={form.role} onChange={handleChange} required>
+            <input name="name" onChange={handleChange} placeholder="Full name" value={form.name} required />
+            <input name="email" onChange={handleChange} placeholder="Email address" type="email" value={form.email} required />
+            <input name="phone" onChange={handleChange} placeholder="Phone number" value={form.phone} />
+            <select name="role" onChange={handleChange} value={form.role}>
               <option value="sender">Sender</option>
               <option value="receiver">Receiver</option>
-              <option value="agent">Agent</option>
+              <option value="agent">Delivery Agent</option>
               <option value="admin">Admin</option>
             </select>
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+            <input className="full-span" name="address" onChange={handleChange} placeholder="Street address" value={form.address} />
+            <input name="city" onChange={handleChange} placeholder="City" value={form.city} />
+            <input name="state" onChange={handleChange} placeholder="State / region" value={form.state} />
+            <input name="country" onChange={handleChange} placeholder="Country" value={form.country} />
+            <input name="hub" onChange={handleChange} placeholder="Hub / operating zone" value={form.hub} />
+            <input name="password" onChange={handleChange} placeholder="Password" type="password" value={form.password} required />
             {form.role === 'admin' ? (
               <input
+                className="full-span"
                 name="adminInviteCode"
-                type="password"
-                placeholder="Admin invite code"
-                value={form.adminInviteCode}
                 onChange={handleChange}
+                placeholder="Admin invite code"
+                type="password"
+                value={form.adminInviteCode}
               />
             ) : null}
-            <LocationSelectGroup
-              cities={cities}
-              disabled={locationsLoading}
-              districts={districts}
-              helperText={
-                form.role === 'sender'
-                  ? 'Sender accounts must store a valid Nepal origin location for route-based pricing.'
-                  : form.role === 'receiver'
-                    ? 'Receiver accounts can save a verified city profile to match incoming deliveries more reliably.'
-                    : 'You can also save a structured operating location for this account.'
-              }
-              legend="Account location"
-              onChange={handleChange}
-              provinces={provinces}
-              required={form.role === 'sender'}
-              values={form}
-            />
-            {!locationsLoading && !locationsError && provinces.length === 0 ? (
-              <div className="auth-error full-span">
-                No location data was returned by the backend. Check the API connection before signing up.
-              </div>
-            ) : null}
-            {locationsError ? <div className="auth-error full-span">{locationsError}</div> : null}
             {error ? <div className="auth-error full-span">{error}</div> : null}
-            <button
-              className="button-primary full-span"
-              disabled={loading || locationsLoading || (form.role === 'sender' && provinces.length === 0)}
-              type="submit"
-            >
+            <button className="button-primary full-span" disabled={loading} type="submit">
               {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
@@ -165,10 +98,7 @@ const Register = () => {
             Already onboarded? <Link to="/login">Sign in</Link>
           </p>
         </section>
-
       </section>
-
-
     </div>
   );
 };

@@ -6,117 +6,107 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { formatCurrency, formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
+import { shipmentStatuses } from '../lib/shipment';
 
 const MyPackages = () => {
   const { user } = useAuth();
-  const [packages, setPackages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [shipments, setShipments] = useState([]);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
 
-    const loadPackages = async () => {
+    const loadShipments = async () => {
       try {
-        const response = await api.get('/api/package/mine', { token: user.token });
-        if (active) {
-          setPackages(response.data);
-          setError('');
-        }
+        const response = await api.get('/api/shipments/mine', { token: user.token });
+        if (!active) return;
+        setShipments(response.data || []);
+        setError('');
       } catch (err) {
-        if (active) setError(err.message);
+        if (!active) return;
+        setError(err.message);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
 
-    loadPackages();
-
+    loadShipments();
     const socket = getSocket();
-    const refresh = () => loadPackages();
-    socket.on('dashboard:refresh', refresh);
+    socket.on('shipments:refresh', loadShipments);
 
     return () => {
       active = false;
-      socket.off('dashboard:refresh', refresh);
+      socket.off('shipments:refresh', loadShipments);
     };
   }, [user.token]);
 
-  const filteredPackages = useMemo(() => {
-    return packages.filter((pkg) => {
-      const matchesStatus = status === 'All' || pkg.status === status;
-      const query = search.trim().toLowerCase();
-      const matchesSearch =
+  const filteredShipments = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return shipments.filter((shipment) => {
+      const matchesStatus = status === 'All' || shipment.status === status;
+      const matchesQuery =
         !query ||
-        pkg.trackingNumber.toLowerCase().includes(query) ||
-        pkg.receiverName.toLowerCase().includes(query) ||
-        pkg.deliveryAddress.toLowerCase().includes(query);
+        shipment.trackingId?.toLowerCase().includes(query) ||
+        shipment.receiver?.name?.toLowerCase().includes(query) ||
+        shipment.packageType?.toLowerCase().includes(query) ||
+        shipment.deliveryAddress?.toLowerCase().includes(query);
 
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesQuery;
     });
-  }, [packages, search, status]);
+  }, [search, shipments, status]);
 
   return (
     <PortalShell
       title="Shipment Register"
-      subtitle="Search your outbound parcels by receiver, route, or tracking number and jump into a full delivery timeline in one click."
+      subtitle="Search your outgoing shipments by tracking ID, receiver, package type, or route and jump directly into delivery, verification, and payment history."
     >
       <section className="glass-card section-card">
         <div className="toolbar">
           <input
-            placeholder="Search by tracking number, receiver, or address"
-            value={search}
             onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by tracking ID, receiver, package type, or address"
+            value={search}
           />
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
+          <select onChange={(event) => setStatus(event.target.value)} value={status}>
             <option value="All">All statuses</option>
-            <option value="Requested">Requested</option>
-            <option value="Approved">Approved</option>
-            <option value="Assigned">Assigned</option>
-            <option value="Picked Up">Picked Up</option>
-            <option value="In Transit">In Transit</option>
-            <option value="Out for Delivery">Out for Delivery</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Delayed">Delayed</option>
-            <option value="Cancelled">Cancelled</option>
+            {shipmentStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
+          <Link className="button-primary" to="/sender/create">New shipment</Link>
         </div>
 
         {error ? <div className="auth-error">{error}</div> : null}
 
         {loading ? (
-          <div className="empty-state">Loading your shipment register...</div>
-        ) : filteredPackages.length === 0 ? (
-          <div className="empty-state">No shipments match your current filters.</div>
+          <div className="empty-state">Loading shipment register...</div>
+        ) : filteredShipments.length === 0 ? (
+          <div className="empty-state">No shipments match the current search and filter combination.</div>
         ) : (
           <div className="package-stack">
-            {filteredPackages.map((pkg) => (
-              <article className="package-item" key={pkg._id}>
+            {filteredShipments.map((shipment) => (
+              <article className="package-item" key={shipment._id}>
                 <div className="package-topline">
                   <div>
-                    <strong>{pkg.trackingNumber}</strong>
-                    <p style={{ margin: '8px 0 0' }}>{pkg.receiverName}</p>
+                    <strong>{shipment.trackingId}</strong>
+                    <p style={{ margin: '8px 0 0' }}>{shipment.receiver?.name}</p>
                   </div>
-                  <StatusBadge status={pkg.status} />
+                  <StatusBadge status={shipment.status} />
                 </div>
-
                 <div className="package-meta" style={{ marginTop: 14 }}>
-                  <span>Pickup: {pkg.pickupAddress}</span>
-                  <span>Destination: {pkg.deliveryAddress}</span>
-                  <span>ETA: {formatDateTime(pkg.estimatedDeliveryAt)}</span>
-                  <span>Assigned courier: {pkg.assignedAgent?.name || 'Awaiting dispatch'}</span>
-                  <span>Charge: {formatCurrency(pkg.shippingCharge)}</span>
+                  <span>Package: {shipment.packageType}</span>
+                  <span>Weight: {shipment.weight} kg</span>
+                  <span>Destination: {shipment.deliveryAddress}</span>
+                  <span>Payment: {shipment.paymentStatus}</span>
+                  <span>Amount: {formatCurrency(shipment.paymentAmount)}</span>
+                  <span>Updated: {formatDateTime(shipment.updatedAt)}</span>
                 </div>
-
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
-                  <Link className="button-primary" to={`/sender/track/${pkg._id}`}>
-                    View timeline
-                  </Link>
-                  <Link className="button-secondary" to={`/track?tracking=${pkg.trackingNumber}`}>
-                    Open public tracking
-                  </Link>
+                <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
+                  <Link className="button-primary" to={`/shipments/${shipment._id}`}>View shipment</Link>
+                  <Link className="button-secondary" to={`/track?tracking=${shipment.trackingId}`}>Public tracking</Link>
                 </div>
               </article>
             ))}

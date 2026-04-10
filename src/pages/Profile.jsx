@@ -1,89 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
-import LocationSelectGroup from '../components/LocationSelectGroup';
+import { useState } from 'react';
 import PortalShell from '../components/PortalShell';
-import PricingEditor from '../components/PricingEditor';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
-import { useLocations } from '../hooks/useLocations';
 import { api } from '../lib/api';
-
-const defaultPricing = {
-  sameCity: 0,
-  sameDistrict: 0,
-  sameProvince: 0,
-  differentProvince: 0,
-  perKgRate: 0,
-  expressMultiplier: 1,
-  codCharge: 0,
-};
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
-  const { provinces, getDistricts, getCities, loading: locationsLoading, error: locationsError } = useLocations();
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    hub: user?.hub || '',
-    province: user?.province || '',
-    district: user?.district || '',
+    address: user?.address || '',
     city: user?.city || '',
+    state: user?.state || '',
+    country: user?.country || 'United States',
+    hub: user?.hub || '',
   });
-  const [pricing, setPricing] = useState(defaultPricing);
   const [saving, setSaving] = useState(false);
-  const [pricingBusy, setPricingBusy] = useState(false);
-  const [pricingLoading, setPricingLoading] = useState(user?.role === 'admin');
   const [error, setError] = useState('');
-  const [pricingError, setPricingError] = useState('');
-
-  const districts = useMemo(() => getDistricts(form.province), [form.province, getDistricts]);
-  const cities = useMemo(() => getCities(form.province, form.district), [form.province, form.district, getCities]);
-
-  useEffect(() => {
-    if (user?.role !== 'admin') return undefined;
-
-    let active = true;
-
-    const loadPricing = async () => {
-      try {
-        const response = await api.get('/api/pricing', { token: user.token });
-        if (active) setPricing(response.data || defaultPricing);
-      } catch (err) {
-        if (active) setPricingError(err.message);
-      } finally {
-        if (active) setPricingLoading(false);
-      }
-    };
-
-    loadPricing();
-
-    return () => {
-      active = false;
-    };
-  }, [user?.role, user?.token]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
-    setForm((prev) => {
-      const nextForm = { ...prev, [name]: value };
-
-      if (name === 'province') {
-        nextForm.district = '';
-        nextForm.city = '';
-      }
-
-      if (name === 'district') {
-        nextForm.city = '';
-      }
-
-      return nextForm;
-    });
-  };
-
-  const updatePricingField = (event) => {
-    const { name, value } = event.target;
-    setPricing((prev) => ({ ...prev, [name]: value }));
+    setForm((current) => ({ ...current, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
@@ -102,140 +40,74 @@ const Profile = () => {
     }
   };
 
-  const savePricing = async (event) => {
-    event.preventDefault();
-    setPricingBusy(true);
-    setPricingError('');
-
-    try {
-      const response = await api.put('/api/pricing', pricing, { token: user.token });
-      setPricing(response.data);
-      showToast('Pricing settings updated successfully.', 'success');
-    } catch (err) {
-      setPricingError(err.message);
-    } finally {
-      setPricingBusy(false);
-    }
-  };
-
-  const profileMetrics = [
-    ['Account role', user?.role || 'workspace'],
-    ['Email address', user?.email || 'Not available'],
-    ['Primary hub', form.hub || 'Not set'],
-    ['Service city', form.city || 'Not set'],
-  ];
-
   return (
     <PortalShell
-      title="Settings"
-      subtitle="Manage account details, operating location, and admin controls from one professional settings workspace."
+      title="Profile Settings"
+      subtitle="Keep your contact, location, and operating details accurate so assignments, receiver matching, notifications, and pricing stay reliable across NexExpree."
     >
       <section className="dashboard-grid">
-        <article className="glass-card section-card settings-summary-card" style={{ gridColumn: 'span 8' }}>
+        <article className="glass-card section-card" style={{ gridColumn: 'span 8' }}>
           <div className="settings-head">
             <div>
-              <h2>Profile Settings</h2>
-              <p>Keep your account details accurate so dispatch, pricing, assignment, and tracking remain reliable.</p>
+              <h2>Account details</h2>
+              <p>Update the profile fields used across shipment creation, receiver matching, and agent routing.</p>
             </div>
-            <div className="settings-role-chip">{user?.role || 'workspace'}</div>
-          </div>
-
-          <div className="settings-summary-grid">
-            {profileMetrics.map(([label, value]) => (
-              <div className="settings-summary-item" key={label}>
-                <span>{label}</span>
-                <strong>{value}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="glass-card section-card settings-support-card" style={{ gridColumn: 'span 4' }}>
-          <h2>Account Guidance</h2>
-          <div className="settings-support-list">
-            <div className="settings-support-item">
-              <strong>Contact accuracy</strong>
-              <p>Use the same phone number you share with senders, receivers, and operations staff.</p>
-            </div>
-            <div className="settings-support-item">
-              <strong>Location visibility</strong>
-              <p>Set your province, district, and city correctly so pricing and service coverage stay accurate.</p>
-            </div>
-            <div className="settings-support-item">
-              <strong>Admin controls</strong>
-              <p>Admin accounts can also manage network pricing settings from this page.</p>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="dashboard-grid" style={{ marginTop: 18 }}>
-        <article className="glass-card section-card settings-profile-card" style={{ gridColumn: user?.role === 'admin' ? 'span 8' : 'span 12' }}>
-          {locationsError ? <div className="auth-error" style={{ marginBottom: 18 }}>{locationsError}</div> : null}
-
-          <div className="settings-head compact">
-            <div>
-              <h2>Personal Details</h2>
-              <p>Update your contact information and base location used across ParcelOps.</p>
-            </div>
+            <div className="settings-role-chip">{user?.role}</div>
           </div>
 
           <form className="form-grid settings-form-grid" onSubmit={handleSubmit}>
             <label className="field-group">
               <span>Full name</span>
-              <input name="name" onChange={handleChange} required value={form.name} />
+              <input name="name" onChange={handleChange} value={form.name} required />
             </label>
-
             <label className="field-group">
-              <span>Phone number</span>
+              <span>Phone</span>
               <input name="phone" onChange={handleChange} value={form.phone} />
             </label>
-
             <label className="field-group full-span">
-              <span>Hub or operating city</span>
+              <span>Address</span>
+              <input name="address" onChange={handleChange} value={form.address} />
+            </label>
+            <label className="field-group">
+              <span>City</span>
+              <input name="city" onChange={handleChange} value={form.city} />
+            </label>
+            <label className="field-group">
+              <span>State / region</span>
+              <input name="state" onChange={handleChange} value={form.state} />
+            </label>
+            <label className="field-group">
+              <span>Country</span>
+              <input name="country" onChange={handleChange} value={form.country} />
+            </label>
+            <label className="field-group">
+              <span>Hub / operating zone</span>
               <input name="hub" onChange={handleChange} value={form.hub} />
             </label>
-
-            <LocationSelectGroup
-              cities={cities}
-              disabled={locationsLoading}
-              districts={districts}
-              helperText={
-                user?.role === 'sender'
-                  ? 'Sender accounts must keep a valid Nepal location so route pricing can be calculated correctly.'
-                  : user?.role === 'receiver'
-                    ? 'Receiver accounts can keep a valid city profile here to improve parcel matching and status updates.'
-                    : user?.role === 'admin'
-                      ? 'Admin accounts should keep an accurate base city for visibility across the operations network.'
-                      : 'Optional for field staff, but useful for planning and operational visibility.'
-              }
-              legend="Structured location"
-              onChange={handleChange}
-              provinces={provinces}
-              required={user?.role === 'sender'}
-              values={form}
-            />
-
             {error ? <div className="auth-error full-span">{error}</div> : null}
-
-            <button className="button-primary full-span" disabled={saving || locationsLoading} type="submit">
-              {saving ? 'Saving profile...' : 'Save profile changes'}
+            <button className="button-primary full-span" disabled={saving} type="submit">
+              {saving ? 'Saving profile...' : 'Save profile'}
             </button>
           </form>
         </article>
 
-        {user?.role === 'admin' ? (
-          <div className="settings-pricing-column" style={{ gridColumn: 'span 4' }}>
-            {pricingError ? <div className="auth-error" style={{ marginBottom: 18 }}>{pricingError}</div> : null}
-            <PricingEditor
-              disabled={false}
-              loading={pricingBusy || pricingLoading}
-              onChange={updatePricingField}
-              onSubmit={savePricing}
-              pricing={pricing}
-            />
+        <article className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
+          <h2>Profile guidance</h2>
+          <div className="settings-support-list">
+            <div className="settings-support-item">
+              <strong>Sender</strong>
+              <p>Profile details prefill new shipment forms and outgoing communication.</p>
+            </div>
+            <div className="settings-support-item">
+              <strong>Receiver</strong>
+              <p>Phone and email help NexExpree match inbound deliveries and verification notices to the right account.</p>
+            </div>
+            <div className="settings-support-item">
+              <strong>Agent</strong>
+              <p>Your hub and city help admins understand local coverage when assigning online couriers.</p>
+            </div>
           </div>
-        ) : null}
+        </article>
       </section>
     </PortalShell>
   );

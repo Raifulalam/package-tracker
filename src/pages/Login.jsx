@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { roleHome } from '../lib/shipment';
 import './auth.css';
 
 const Login = () => {
@@ -13,10 +14,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (event) => {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -26,11 +23,7 @@ const Login = () => {
       const response = await api.post('/api/auth/login', form);
       login(response);
       showToast(`Welcome back, ${response.user.name}.`, 'success');
-
-      if (response.user.role === 'admin') navigate('/admin');
-      else if (response.user.role === 'receiver') navigate('/receiver');
-      else if (response.user.role === 'agent') navigate('/agent');
-      else navigate('/dashboard');
+      navigate(roleHome(response.user.role));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,45 +34,54 @@ const Login = () => {
   return (
     <div className="auth-shell">
       <section className="auth-showcase">
-
+        <span className="auth-showcase-badge">NexExpree access</span>
+        <h1>Run courier operations with live visibility and verified delivery.</h1>
+        <p>Sign in as an admin, sender, receiver, or delivery agent to manage the full NexExpree workflow in real time.</p>
 
         <div className="auth-showcase-grid">
-          <section className="auth-card">
-            <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
-            <h2>Welcome back to NepXpress.</h2>
-            <p>Sign in to manage shipments, coordinate deliveries, and monitor live parcel activity with confidence.</p>
-
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <input
-                name="email"
-                type="email"
-                placeholder="Work email"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
-              {error ? <div className="auth-error">{error}</div> : null}
-              <button className="button-primary" disabled={loading} type="submit">
-                {loading ? 'Signing in...' : 'Sign in'}
-              </button>
-            </form>
-
-            <p className="auth-footer">
-              New to the platform? <Link to="/register">Create an account</Link>
-            </p>
-          </section>
+          <article>
+            <strong>Role-based control</strong>
+            <span>Separate workspaces for control center, senders, receivers, and field agents.</span>
+          </article>
+          <article>
+            <strong>Realtime updates</strong>
+            <span>Shipment status, agent availability, assignments, and notifications update without reloads.</span>
+          </article>
         </div>
+
+        <section className="auth-card">
+          <span className="auth-eyebrow">Secure login</span>
+          <h2>Welcome back to NexExpree.</h2>
+          <p>Use your role account to continue managing deliveries, payment status, verification, and tracking.</p>
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <input
+              name="email"
+              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+              placeholder="Work email"
+              type="email"
+              value={form.email}
+              required
+            />
+            <input
+              name="password"
+              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+              placeholder="Password"
+              type="password"
+              value={form.password}
+              required
+            />
+            {error ? <div className="auth-error">{error}</div> : null}
+            <button className="button-primary" disabled={loading} type="submit">
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="auth-footer">
+            Need an account? <Link to="/register">Create one</Link>
+          </p>
+        </section>
       </section>
-
-
     </div>
   );
 };

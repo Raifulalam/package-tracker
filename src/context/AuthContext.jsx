@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
+import { joinSocketPresence } from '../lib/socket';
 
 const AuthContext = createContext();
 const storageKey = 'courier_auth';
@@ -106,6 +107,11 @@ export const AuthProvider = ({ children }) => {
       active = false;
     };
   }, [persistUser, refreshUser]);
+
+  useEffect(() => {
+    if (!user?.token) return;
+    joinSocketPresence(user);
+  }, [user]);
 
   const value = useMemo(
     () => ({

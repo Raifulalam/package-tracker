@@ -1,0 +1,117 @@
+.premium-footer {
+    background: linear-gradient(135deg, #0A2540, #0d2f55);
+    color: #fff;
+    padding: 80px 20px 30px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Layout */
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Brand */
+.footer-brand h2 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.footer-brand span {
+    color: #FF6B00;
+}
+
+.footer-brand p {
+    margin: 10px 0 20px;
+    opacity: 0.8;
+}
+
+/* Links */
+.footer-links h4,
+.footer-newsletter h4 {
+    margin-bottom: 15px;
+    color: #FF6B00;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: 0.3s;
+}
+
+.footer-links li:hover {
+    color: #FF6B00;
+    transform: translateX(5px);
+}
+
+/* Socials */
+.socials svg {
+    margin-right: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.socials svg:hover {
+    color: #FF6B00;
+    transform: scale(1.2);
+}
+
+/* Newsletter */
+.footer-newsletter p {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.newsletter-box {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.newsletter-box input {
+    flex: 1;
+    border: none;
+    padding: 10px 15px;
+    background: transparent;
+    color: #fff;
+    outline: none;
+}
+
+.newsletter-box input::placeholder {
+    color: #ccc;
+}
+
+.newsletter-box button {
+    background: linear-gradient(135deg, #FF6B00, #ff8c42);
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.newsletter-box button:hover {
+    opacity: 0.9;
+}
+
+/* Bottom */
+.footer-bottom {
+    margin-top: 50px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    font-size: 14px;
+    opacity: 0.7;
+}

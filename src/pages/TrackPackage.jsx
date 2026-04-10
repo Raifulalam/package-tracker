@@ -2,26 +2,25 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import StatusBadge from '../components/StatusBadge';
 import { api } from '../lib/api';
-import { formatCurrency, formatDateTime } from '../lib/formatters';
+import { formatDateTime } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
-import { getRouteLabel } from '../lib/pricing';
 import './auth.css';
 
 const TrackPackage = () => {
   const [searchParams] = useSearchParams();
-  const [trackingNumber, setTrackingNumber] = useState(searchParams.get('tracking') || '');
+  const [trackingId, setTrackingId] = useState(searchParams.get('tracking') || '');
   const [shipment, setShipment] = useState(null);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const loadTracking = useCallback(async (value = trackingNumber) => {
+  const loadTracking = useCallback(async (value = trackingId) => {
     if (!value.trim()) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const response = await api.get(`/api/package/public/${encodeURIComponent(value.trim())}`);
+      const response = await api.get(`/api/shipments/track/${encodeURIComponent(value.trim())}`);
       setShipment(response.data);
     } catch (err) {
       setShipment(null);
@@ -29,106 +28,96 @@ const TrackPackage = () => {
     } finally {
       setLoading(false);
     }
-  }, [trackingNumber]);
+  }, [trackingId]);
 
   useEffect(() => {
-    if (searchParams.get('tracking')) {
-      loadTracking(searchParams.get('tracking'));
+    const seededTracking = searchParams.get('tracking');
+    if (seededTracking) {
+      loadTracking(seededTracking);
     }
   }, [loadTracking, searchParams]);
 
   useEffect(() => {
     const socket = getSocket();
-    const handleUpdate = (updatedPackage) => {
-      if (updatedPackage.trackingNumber === shipment?.trackingNumber) {
-        setShipment(updatedPackage);
+    const refresh = ({ trackingId: nextTrackingId }) => {
+      if (nextTrackingId && nextTrackingId === shipment?.trackingId) {
+        loadTracking(nextTrackingId);
       }
     };
 
-    socket.on('package:updated', handleUpdate);
-    socket.on('package:created', handleUpdate);
-
-    return () => {
-      socket.off('package:updated', handleUpdate);
-      socket.off('package:created', handleUpdate);
-    };
-  }, [shipment?.trackingNumber]);
+    socket.on('shipments:refresh', refresh);
+    return () => socket.off('shipments:refresh', refresh);
+  }, [loadTracking, shipment?.trackingId]);
 
   return (
     <div className="auth-shell tracking-shell">
       <section className="auth-showcase">
-        <span className="auth-showcase-badge">Public Tracking</span>
-        <h1>Track every ParcelOps delivery in real time.</h1>
-        <p>
-          Enter a tracking number to view the latest shipment status, delivery route, courier assignment, and milestone history in one clear tracking experience.
-        </p>
+        <span className="auth-showcase-badge">Public tracking</span>
+        <h1>Track every NexExpree shipment in real time.</h1>
+        <p>Look up a tracking ID to see live shipment status, route addresses, assignment state, payment status, and the full timeline of delivery events.</p>
 
-        <div className="auth-showcase-grid">
-          <section className="auth-card auth-card-wide tracking-card">
-            <span className="auth-eyebrow">Deliver Faster. Track Smarter.</span>
-            <h2>Track your shipment.</h2>
-            <p>Use your ParcelOps tracking number to see live status, route progress, and delivery milestones.</p>
+        <section className="auth-card auth-card-wide tracking-card">
+          <span className="auth-eyebrow">Tracking lookup</span>
+          <h2>Find a shipment.</h2>
+          <p>Enter a NexExpree tracking ID to open the public view for that delivery.</p>
 
-            <div className="tracking-search">
-              <input
-                placeholder="Enter tracking number, for example PTR-20260330-ABC123"
-                value={trackingNumber}
-                onChange={(event) => setTrackingNumber(event.target.value)}
-              />
-              <button className="button-primary" onClick={() => loadTracking()} type="button">
-                {loading ? 'Tracking...' : 'Track shipment'}
-              </button>
-            </div>
+          <div className="tracking-search">
+            <input
+              onChange={(event) => setTrackingId(event.target.value)}
+              placeholder="Enter tracking ID, for example NEX-20260410-AB12CD34"
+              value={trackingId}
+            />
+            <button className="button-primary" onClick={() => loadTracking()} type="button">
+              {loading ? 'Tracking...' : 'Track shipment'}
+            </button>
+          </div>
 
-            {error ? <div className="auth-error" style={{ marginTop: 18 }}>{error}</div> : null}
+          {error ? <div className="auth-error" style={{ marginTop: 18 }}>{error}</div> : null}
 
-            {shipment ? (
-              <div className="package-stack" style={{ marginTop: 22 }}>
-                <article className="package-item">
-                  <div className="package-topline">
-                    <div>
-                      <strong>{shipment.trackingNumber}</strong>
-                      <p style={{ margin: '8px 0 0' }}>{shipment.receiverName}</p>
-                    </div>
-                    <StatusBadge status={shipment.status} />
+          {shipment ? (
+            <div className="package-stack" style={{ marginTop: 24 }}>
+              <article className="package-item">
+                <div className="package-topline">
+                  <div>
+                    <strong>{shipment.trackingId}</strong>
+                    <p style={{ margin: '8px 0 0' }}>{shipment.receiver?.name}</p>
                   </div>
+                  <StatusBadge status={shipment.status} />
+                </div>
+                <div className="package-meta" style={{ marginTop: 14 }}>
+                  <span>Sender: {shipment.sender?.name || 'Sender'}</span>
+                  <span>Package: {shipment.packageType}</span>
+                  <span>Pickup: {shipment.pickupAddress}</span>
+                  <span>Delivery: {shipment.deliveryAddress}</span>
+                  <span>Payment: {shipment.paymentStatus}</span>
+                  <span>ETA: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
+                  <span>Delivered: {formatDateTime(shipment.deliveredAt)}</span>
+                </div>
+              </article>
 
-                  <div className="package-meta" style={{ marginTop: 14 }}>
-                    <span>Pickup: {shipment.pickupAddress}</span>
-                    <span>Destination: {shipment.deliveryAddress}</span>
-                    <span>Charge: {formatCurrency(shipment.shippingCharge)}</span>
-                    <span>Route tier: {getRouteLabel(shipment.pricingSnapshot?.routeType)}</span>
-                    <span>Estimated delivery: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
-                    <span>Assigned courier: {shipment.assignedAgent?.name || 'Pending assignment'}</span>
-                  </div>
-                </article>
-
-                <article className="package-item">
-                  <h3 style={{ marginTop: 0 }}>Shipment timeline</h3>
-                  <div className="timeline">
-                    {shipment.statusUpdates?.map((update, index) => (
-                      <div className="timeline-row" key={`${update.status}-${index}`}>
-                        <div className="timeline-dot" />
-                        <div className="timeline-content">
-                          <strong>{update.label || update.status}</strong>
-                          <small>{formatDateTime(update.timestamp)}</small>
-                          <p>{update.note || 'Operational event recorded.'}</p>
-                        </div>
+              <article className="package-item">
+                <h3 style={{ marginTop: 0 }}>Delivery timeline</h3>
+                <div className="timeline">
+                  {shipment.timeline?.map((item, index) => (
+                    <div className="timeline-row" key={`${item.status}-${index}`}>
+                      <div className="timeline-dot" />
+                      <div className="timeline-content">
+                        <strong>{item.label || item.status}</strong>
+                        <small>{formatDateTime(item.timestamp)}</small>
+                        <p>{item.note || 'Event logged.'}</p>
                       </div>
-                    ))}
-                  </div>
-                </article>
-              </div>
-            ) : null}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </div>
+          ) : null}
 
-            <p className="auth-footer" style={{ marginTop: 22 }}>
-              Need role-based access? <Link to="/login">Sign in to ParcelOps</Link>
-            </p>
-          </section>
-        </div>
+          <p className="auth-footer" style={{ marginTop: 22 }}>
+            Need the full role-based dashboard? <Link to="/login">Sign in to NexExpree</Link>
+          </p>
+        </section>
       </section>
-
-
     </div>
   );
 };

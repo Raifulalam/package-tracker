@@ -12,17 +12,17 @@ export function formatStatusClass(status = '') {
 }
 
 export function formatCurrency(value) {
-  return new Intl.NumberFormat('en-NP', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'NPR',
+    currency: 'USD',
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }
 
 export function getStatusTone(status = '') {
-  if (['Delivered'].includes(status)) return 'success';
-  if (['Cancelled', 'Exception'].includes(status)) return 'danger';
-  if (['Requested', 'Approved', 'Scheduled'].includes(status)) return 'info';
-  if (['Assigned', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delayed'].includes(status)) return 'warning';
+  if (['Delivered', 'Paid', 'Available'].includes(status)) return 'success';
+  if (['Cancelled', 'Failed', 'Unavailable'].includes(status)) return 'danger';
+  if (['Pending', 'Unpaid'].includes(status)) return 'warning';
+  if (['Assigned', 'Picked Up', 'In Transit', 'Out for Delivery'].includes(status)) return 'info';
   return 'muted';
 }
