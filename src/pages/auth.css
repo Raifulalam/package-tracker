@@ -1,5 +1,5 @@
 .auth-showcase {
-  width: min(1240px, 100%);
+
   margin: 0 auto;
   position: relative;
   display: grid;
@@ -8,7 +8,7 @@
   border-radius: 34px;
   background:
     linear-gradient(150deg, rgba(12, 26, 39, 0.82), rgba(23, 71, 73, 0.86)),
-    url("/showcase1.png");
+    url("/showcase.png");
   background-size: cover;
   background-position: center;
   color: #ffffff;
@@ -30,7 +30,7 @@
   pointer-events: none;
 }
 
-.auth-showcase > * {
+.auth-showcase>* {
   position: relative;
   z-index: 1;
 }
@@ -192,6 +192,7 @@
 }
 
 @media (max-width: 640px) {
+
   .auth-showcase,
   .auth-card {
     padding: 22px;
