@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
-import QRCodeCard from '../components/QRCodeCard';
 import StatusBadge from '../components/StatusBadge';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +23,7 @@ const AgentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState('');
   const [error, setError] = useState('');
+  const [verifyModal, setVerifyModal] = useState({ open: false, shipment: null, otp: '' });
 
   const loadDashboard = async () => {
     try {
@@ -87,6 +87,26 @@ const AgentDashboard = () => {
     }
   };
 
+  const submitOtpVerification = async (e) => {
+    e.preventDefault();
+    if (!verifyModal.shipment) return;
+    
+    setBusyKey(`verify:${verifyModal.shipment._id}`);
+    try {
+      await api.post(`/api/shipments/${verifyModal.shipment._id}/verify-delivery`, 
+        { otp: verifyModal.otp }, 
+        { token: user.token }
+      );
+      showToast('Delivery verified successfully!', 'success');
+      setVerifyModal({ open: false, shipment: null, otp: '' });
+      await loadDashboard();
+    } catch (err) {
+      showToast(err.message || 'Invalid OTP', 'error');
+    } finally {
+      setBusyKey('');
+    }
+  };
+
   const cards = [
     ['Assigned', dashboard.stats.assigned || 0, 'info'],
     ['In Transit', dashboard.stats.inTransit || 0, 'info'],
@@ -97,28 +117,27 @@ const AgentDashboard = () => {
   return (
     <PortalShell
       title="Delivery Agent Dashboard"
-      subtitle="Go online for assignments, update shipment progress live, and use OTP or QR verification before marking a delivery as complete."
+      subtitle="Go online for assignments, update shipment progress live, and use OTP verification before marking a delivery as complete."
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
-      <section className="admin-summary-grid">
+      <section className="dashboard-grid" style={{ marginBottom: '24px' }}>
         {cards.map(([label, value, tone]) => (
-          <article className="glass-card metric-card admin-summary-card" key={label}>
-            <small>{label}</small>
-            <strong>{loading ? '...' : value}</strong>
-            <p>{label === 'Availability' ? 'Only online agents can receive new assignments.' : 'Realtime view of your field workload.'}</p>
-            <span className={`admin-summary-icon tone-${tone}`}>{String(label).slice(0, 2).toUpperCase()}</span>
+          <article className="card" key={label} style={{ gridColumn: 'span 3', borderLeft: `4px solid var(--${tone})` }}>
+            <small style={{ fontWeight: 600, color: 'var(--ink-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</small>
+            <strong style={{ display: 'block', fontSize: '2rem', marginTop: '8px' }}>{loading ? '...' : value}</strong>
           </article>
         ))}
       </section>
 
-      <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
-        <article className="glass-card section-card" style={{ gridColumn: 'span 3' }}>
-          <div className="workspace-action-list">
+      <section className="dashboard-grid">
+        <article className="card" style={{ gridColumn: 'span 3' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Controls</h3>
             <button className={dashboard.isAvailable ? 'button-danger' : 'button-primary'} disabled={busyKey === 'availability'} onClick={toggleAvailability} type="button">
               {busyKey === 'availability' ? 'Updating...' : dashboard.isAvailable ? 'Go Offline' : 'Go Online'}
             </button>
-            <select onChange={(event) => setStatusFilter(event.target.value)} value={statusFilter}>
+            <select className="form-select" onChange={(event) => setStatusFilter(event.target.value)} value={statusFilter} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
               <option value="All">All statuses</option>
               <option value="Assigned">Assigned</option>
               <option value="Picked Up">Picked Up</option>
@@ -126,60 +145,105 @@ const AgentDashboard = () => {
               <option value="Out for Delivery">Out for Delivery</option>
               <option value="Delivered">Delivered</option>
             </select>
-            <Link className="button-secondary" to="/payments">Payment board</Link>
+            <Link className="button-secondary" to="/payments" style={{ textAlign: 'center' }}>Payment board</Link>
           </div>
         </article>
 
-        <article className="glass-card section-card" style={{ gridColumn: 'span 9' }}>
-          <div className="admin-section-head">
-            <div>
-              <h2>Assigned deliveries</h2>
-              <p>Update pickup, transit, and last-mile status in real time.</p>
-            </div>
+        <article className="card" style={{ gridColumn: 'span 9' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.3rem' }}>Assigned Deliveries</h2>
+            <p style={{ margin: '4px 0 0', color: 'var(--ink-500)' }}>Update pickup, transit, and last-mile status in real time.</p>
           </div>
+
           {loading ? (
             <div className="empty-state">Loading assigned deliveries...</div>
           ) : filteredShipments.length === 0 ? (
             <div className="empty-state">No deliveries match the current filter.</div>
           ) : (
-            <div className="package-stack">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {filteredShipments.map((shipment) => (
-                <article className="package-item" key={shipment._id}>
-                  <div className="package-topline">
+                <div key={shipment._id} style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--surface-0)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
-                      <strong>{shipment.trackingId}</strong>
-                      <p style={{ margin: '8px 0 0' }}>{shipment.receiver?.name}</p>
+                      <strong style={{ fontSize: '1.1rem' }}>{shipment.trackingId}</strong>
+                      <p style={{ margin: '4px 0 0', color: 'var(--ink-500)' }}>Receiver: {shipment.receiver?.name}</p>
                     </div>
                     <StatusBadge status={shipment.status} />
                   </div>
-                  <div className="package-meta" style={{ marginTop: 14 }}>
-                    <span>Pickup: {shipment.pickupAddress}</span>
-                    <span>Delivery: {shipment.deliveryAddress}</span>
-                    <span>Charge: {formatCurrency(shipment.paymentAmount)}</span>
-                    <span>Payment: {shipment.paymentStatus}</span>
-                    <span>ETA: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.9rem', color: 'var(--ink-700)' }}>
+                    <div><strong>Pickup:</strong> {shipment.pickupAddress}</div>
+                    <div><strong>Delivery:</strong> {shipment.deliveryAddress}</div>
+                    <div><strong>Charge:</strong> {formatCurrency(shipment.paymentAmount)}</div>
+                    <div><strong>Payment:</strong> {shipment.paymentStatus}</div>
                   </div>
-                  {shipment.status === 'Out for Delivery' ? <QRCodeCard label="Delivery QR" value={shipment.qrToken} /> : null}
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                    {agentProgressionStatuses.map((status) => (
-                      <button
-                        className="button-secondary"
-                        disabled={busyKey === `${shipment._id}:${status}` || shipment.status === status || shipment.status === 'Cancelled' || shipment.status === 'Delivered'}
-                        key={status}
-                        onClick={() => updateStatus(shipment._id, status)}
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
+                    {agentProgressionStatuses.map((status) => {
+                      const isDisabled = busyKey === `${shipment._id}:${status}` || shipment.status === status || shipment.status === 'Cancelled' || shipment.status === 'Delivered';
+                      if (shipment.status === 'Delivered' || shipment.status === 'Cancelled') return null;
+                      
+                      return (
+                        <button
+                          className="button-secondary"
+                          disabled={isDisabled}
+                          key={status}
+                          onClick={() => updateStatus(shipment._id, status)}
+                          type="button"
+                        >
+                          {busyKey === `${shipment._id}:${status}` ? 'Updating...' : `Mark ${status}`}
+                        </button>
+                      );
+                    })}
+                    
+                    {shipment.status === 'Out for Delivery' && (
+                      <button 
+                        className="button-primary"
+                        onClick={() => setVerifyModal({ open: true, shipment, otp: '' })}
                         type="button"
                       >
-                        {busyKey === `${shipment._id}:${status}` ? 'Updating...' : status}
+                        Verify Delivery (OTP)
                       </button>
-                    ))}
-                    <Link className="button-primary" to={`/shipments/${shipment._id}`}>Open verification</Link>
+                    )}
                   </div>
-                </article>
+                </div>
               ))}
             </div>
           )}
         </article>
       </section>
+
+      {/* OTP Verification Modal */}
+      {verifyModal.open && verifyModal.shipment && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '400px', backgroundColor: '#fff' }}>
+            <h3 style={{ margin: '0 0 8px' }}>Verify Delivery</h3>
+            <p style={{ margin: '0 0 20px', color: 'var(--ink-500)', fontSize: '0.9rem' }}>
+              Ask the receiver for the OTP to confirm delivery of <strong>{verifyModal.shipment.trackingId}</strong>.
+            </p>
+            
+            <form onSubmit={submitOtpVerification} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input 
+                type="text" 
+                placeholder="Enter Delivery OTP" 
+                value={verifyModal.otp} 
+                onChange={e => setVerifyModal(prev => ({ ...prev, otp: e.target.value }))}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '1.2rem', textAlign: 'center', letterSpacing: '2px' }}
+                required 
+                autoFocus
+              />
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="button" className="button-ghost" onClick={() => setVerifyModal({ open: false, shipment: null, otp: '' })}>
+                  Cancel
+                </button>
+                <button type="submit" className="button-primary" disabled={busyKey.startsWith('verify') || !verifyModal.otp}>
+                  {busyKey.startsWith('verify') ? 'Verifying...' : 'Confirm Delivery'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </PortalShell>
   );
 };

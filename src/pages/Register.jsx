@@ -11,7 +11,7 @@ const initialForm = {
   address: '',
   city: '',
   state: '',
-  country: 'United States',
+  country: 'Nepal',
   hub: '',
   password: '',
   role: 'sender',
@@ -68,7 +68,6 @@ const Register = () => {
             <input name="phone" onChange={handleChange} placeholder="Phone number" value={form.phone} />
             <select name="role" onChange={handleChange} value={form.role}>
               <option value="sender">Sender</option>
-              <option value="receiver">Receiver</option>
               <option value="agent">Delivery Agent</option>
               <option value="admin">Admin</option>
             </select>

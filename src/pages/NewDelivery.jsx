@@ -1,16 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { formatCurrency } from '../lib/formatters';
-
-function calculateEstimate(weight, serviceLevel) {
-  const parsedWeight = Math.max(Number(weight) || 0, 0);
-  const base = serviceLevel === 'same-day' ? 24 : serviceLevel === 'express' ? 18 : 12;
-  return Number((base + Math.max(parsedWeight, 1) * 2.75).toFixed(2));
-}
 
 const initialForm = {
   senderName: '',
@@ -20,6 +14,7 @@ const initialForm = {
   receiverPhone: '',
   receiverEmail: '',
   packageType: '',
+  routeType: 'sameCity',
   weight: '',
   pickupAddress: '',
   deliveryAddress: '',
@@ -31,6 +26,7 @@ const NewDelivery = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  
   const [form, setForm] = useState({
     ...initialForm,
     senderName: user?.name || '',
@@ -40,11 +36,25 @@ const NewDelivery = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successData, setSuccessData] = useState(null);
+  const [pricing, setPricing] = useState(null);
 
-  const estimatedPrice = useMemo(
-    () => calculateEstimate(form.weight, form.serviceLevel),
-    [form.serviceLevel, form.weight]
-  );
+  useEffect(() => {
+    api.get('/api/shipments/pricing', { token: user.token })
+      .then(setPricing)
+      .catch((err) => console.error('Failed to load pricing config:', err));
+  }, [user.token]);
+
+  const estimatedPrice = useMemo(() => {
+    if (!pricing || !form.weight) return 0;
+    
+    const parsedWeight = Math.max(Number(form.weight) || 0, 0);
+    const basePrice = Number(pricing[form.routeType] || pricing.sameCity || 75);
+    const perKgRate = Number(pricing.perKgRate || 2.5);
+    const deliveryMultiplier = form.serviceLevel === 'express' ? Number(pricing.expressMultiplier || 1.35) : 1;
+    
+    return (basePrice + (parsedWeight * perKgRate)) * deliveryMultiplier;
+  }, [form.serviceLevel, form.weight, form.routeType, pricing]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -58,14 +68,64 @@ const NewDelivery = () => {
 
     try {
       const response = await api.post('/api/shipments', form, { token: user.token });
-      showToast(`Shipment created. Tracking ID: ${response.data.trackingId}`, 'success');
-      navigate(`/shipments/${response.data._id}`);
+      showToast('Shipment created successfully!', 'success');
+      setSuccessData(response.data);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleCopy = () => {
+    if (!successData) return;
+    const text = `Tracking ID: ${successData.trackingId}\nDelivery OTP: ${successData.deliveryOtp}\nStatus: Created`;
+    navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!', 'success');
+  };
+
+  if (successData) {
+    return (
+      <PortalShell title="Shipment Created" subtitle="Your shipment is ready for pickup!">
+        <section className="glass-card section-card" style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ padding: '32px 16px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', backgroundColor: '#dcfce7', color: '#15803d', marginBottom: '24px' }}>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: 32, height: 32 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Shipment Successful</h2>
+            <p style={{ color: 'var(--ink-500)', marginBottom: '24px' }}>Please securely share the Delivery OTP with the receiver.</p>
+
+            <div style={{ backgroundColor: 'var(--surface-2)', padding: '24px', borderRadius: '16px', textAlign: 'left', marginBottom: '24px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                 <span style={{ color: 'var(--ink-500)', fontWeight: 600 }}>Tracking ID:</span>
+                 <strong style={{ fontSize: '1.1rem' }}>{successData.trackingId}</strong>
+               </div>
+               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                 <span style={{ color: 'var(--ink-500)', fontWeight: 600 }}>Status:</span>
+                 <span className="status-badge tone-success">Created</span>
+               </div>
+               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                 <span style={{ color: 'var(--ink-500)', fontWeight: 600 }}>Delivery OTP:</span>
+                 <strong style={{ fontSize: '1.2rem', color: 'var(--accent-700)', letterSpacing: '4px' }}>{successData.deliveryOtp}</strong>
+               </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+               <button type="button" className="button-secondary" onClick={handleCopy} style={{ padding: '12px 24px' }}>
+                 Copy Details
+               </button>
+               <button type="button" className="button-primary" onClick={() => navigate(`/shipments/${successData._id}`)} style={{ padding: '12px 24px' }}>
+                 View Shipment
+               </button>
+            </div>
+          </div>
+        </section>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -101,7 +161,7 @@ const NewDelivery = () => {
           <div className="fieldset-card full-span">
             <div className="section-copy">
               <strong>Receiver information</strong>
-              <p>These details are used to match incoming shipments to receiver accounts and delivery notifications.</p>
+              <p>These details are used for the shipping label and notifications. Note: Receivers don't require an account.</p>
             </div>
           </div>
 
@@ -121,6 +181,15 @@ const NewDelivery = () => {
           <label className="field-group">
             <span>Package type</span>
             <input name="packageType" onChange={handleChange} placeholder="Documents, apparel, electronics..." value={form.packageType} required />
+          </label>
+          <label className="field-group">
+            <span>Route</span>
+            <select name="routeType" onChange={handleChange} value={form.routeType}>
+              <option value="sameCity">Same City</option>
+              <option value="sameDistrict">Same District</option>
+              <option value="sameProvince">Same Province</option>
+              <option value="differentProvince">Cross Province</option>
+            </select>
           </label>
           <label className="field-group">
             <span>Weight (kg)</span>
@@ -152,7 +221,7 @@ const NewDelivery = () => {
           </label>
 
           {error ? <div className="auth-error full-span">{error}</div> : null}
-          <button className="button-primary full-span" disabled={loading} type="submit">
+          <button className="button-primary full-span" disabled={loading} type="submit" style={{ padding: '14px', marginTop: '10px' }}>
             {loading ? 'Creating shipment...' : 'Create shipment'}
           </button>
         </form>

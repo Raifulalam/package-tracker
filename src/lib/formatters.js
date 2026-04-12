@@ -12,9 +12,9 @@ export function formatStatusClass(status = '') {
 }
 
 export function formatCurrency(value) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-NP', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'NPR',
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }

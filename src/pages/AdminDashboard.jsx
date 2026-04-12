@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import PricingEditor from '../components/PricingEditor';
 import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
 import { useToast } from '../components/ToastProvider';
@@ -28,6 +29,8 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [pricing, setPricing] = useState(null);
+  const [savingPricing, setSavingPricing] = useState(false);
 
   const loadDashboard = async (currentFilters = filters, showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -47,11 +50,36 @@ const AdminDashboard = () => {
       const response = await api.get(`/api/admin/packages?${params.toString()}`, { token: user.token });
       setPayload(response.data || emptyPayload);
       setMeta(response.meta || { page: 1, totalPages: 1, total: 0 });
+      
+      const pricingResponse = await api.get('/api/admin/pricing', { token: user.token });
+      setPricing(pricingResponse || {});
+      
       setError('');
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePricingChange = (event) => {
+    const { name, value } = event.target;
+    setPricing((current) => ({
+      ...current,
+      [name]: Number(value)
+    }));
+  };
+
+  const handlePricingSubmit = async (event) => {
+    event.preventDefault();
+    setSavingPricing(true);
+    try {
+      await api.put('/api/admin/pricing', pricing, { token: user.token });
+      showToast('Pricing rules updated successfully.', 'success');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingPricing(false);
     }
   };
 
@@ -127,6 +155,19 @@ const AdminDashboard = () => {
           </article>
         ))}
       </section>
+
+      {pricing ? (
+        <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
+          <div style={{ gridColumn: 'span 12' }}>
+            <PricingEditor
+              pricing={pricing}
+              onChange={handlePricingChange}
+              onSubmit={handlePricingSubmit}
+              loading={savingPricing}
+            />
+          </div>
+        </section>
+      ) : null}
 
       <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
         <article className="glass-card section-card" style={{ gridColumn: 'span 8' }}>

@@ -100,19 +100,19 @@ const PaymentPage = () => {
                     <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                       <button
                         className="button-primary"
-                        disabled={busyId === `${shipment._id}:Mock Stripe`}
-                        onClick={() => payShipment(shipment._id, 'Mock Stripe')}
+                        disabled={busyId === `${shipment._id}:Khalti`}
+                        onClick={() => payShipment(shipment._id, 'Khalti')}
                         type="button"
                       >
-                        {busyId === `${shipment._id}:Mock Stripe` ? 'Paying...' : 'Pay with Mock Stripe'}
+                        {busyId === `${shipment._id}:Khalti` ? 'Paying...' : 'Pay with Khalti'}
                       </button>
                       <button
                         className="button-secondary"
-                        disabled={busyId === `${shipment._id}:Mock eSewa`}
-                        onClick={() => payShipment(shipment._id, 'Mock eSewa')}
+                        disabled={busyId === `${shipment._id}:eSewa`}
+                        onClick={() => payShipment(shipment._id, 'eSewa')}
                         type="button"
                       >
-                        {busyId === `${shipment._id}:Mock eSewa` ? 'Paying...' : 'Pay with Mock eSewa'}
+                        {busyId === `${shipment._id}:eSewa` ? 'Paying...' : 'Pay with eSewa'}
                       </button>
                     </div>
                   ) : (

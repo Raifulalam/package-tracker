@@ -13,7 +13,7 @@ const Profile = () => {
     address: user?.address || '',
     city: user?.city || '',
     state: user?.state || '',
-    country: user?.country || 'United States',
+    country: user?.country || 'Nepal',
     hub: user?.hub || '',
   });
   const [saving, setSaving] = useState(false);

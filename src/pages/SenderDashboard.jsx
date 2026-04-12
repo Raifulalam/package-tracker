@@ -53,166 +53,122 @@ const SenderDashboard = () => {
     };
   }, [user.token]);
 
-  const cards = useMemo(
+  const statsCards = useMemo(
     () => [
       ['Total Shipments', dashboard.stats.total, 'info'],
-      ['Pending', dashboard.stats.pending, 'warning'],
-      ['Assigned', dashboard.stats.assigned, 'info'],
-      ['In Transit', dashboard.stats.inTransit, 'info'],
+      ['In Transit', dashboard.stats.inTransit, 'warning'],
       ['Delivered', dashboard.stats.delivered, 'success'],
-      ['Cancelled', dashboard.stats.cancelled, 'danger'],
     ],
     [dashboard.stats]
   );
 
   return (
     <PortalShell
-      title="Sender Workspace"
-      subtitle="Create shipments, watch live progress, stay ahead of payment status, and keep every outgoing delivery organized in one premium sender workspace."
+      title="Sender Dashboard"
+      subtitle="Overview of your shipments, tracking progress, and quick actions."
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
-      <section className="admin-summary-grid">
-        {cards.map(([label, value, tone]) => (
-          <article className="glass-card metric-card admin-summary-card" key={label}>
-            <small>{label}</small>
-            <strong>{loading ? '...' : value}</strong>
-            <p>{label === 'Pending' ? 'Waiting for assignment or cancellation.' : 'Live value across your sender account.'}</p>
-            <span className={`admin-summary-icon tone-${tone}`}>{String(label).slice(0, 2).toUpperCase()}</span>
+      {/* Top Metrics Cards */}
+      <section className="dashboard-grid" style={{ marginBottom: '24px' }}>
+        {statsCards.map(([label, value, tone]) => (
+          <article className="card" key={label} style={{ gridColumn: 'span 4', borderTop: `4px solid var(--${tone})` }}>
+            <small style={{ fontWeight: 600, color: 'var(--ink-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</small>
+            <strong style={{ display: 'block', fontSize: '2.4rem', marginTop: '8px' }}>{loading ? '...' : value}</strong>
           </article>
         ))}
       </section>
 
-      <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
-        <article className="glass-card section-card" style={{ gridColumn: 'span 7' }}>
-          <div className="admin-section-head">
-            <div>
-              <h2>Recent shipments</h2>
-              <p>Latest bookings and live tracking access from your sender workspace.</p>
-            </div>
-            <Link className="button-primary" to="/sender/create">New shipment</Link>
+      <section className="dashboard-grid" style={{ marginBottom: '24px' }}>
+        {/* Recent Shipments Table Area */}
+        <article className="card" style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Recent Shipments</h2>
+            <Link className="button-primary" to="/sender/create">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: 18, height: 18, marginRight: 6 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Shipment
+            </Link>
           </div>
-          {loading ? (
-            <div className="empty-state">Loading recent shipments...</div>
-          ) : dashboard.recentShipments.length === 0 ? (
-            <div className="empty-state">No shipments yet. Create your first shipment to start tracking.</div>
-          ) : (
-            <div className="package-stack">
-              {dashboard.recentShipments.map((shipment) => (
-                <article className="package-item" key={shipment._id}>
-                  <div className="package-topline">
-                    <div>
-                      <strong>{shipment.trackingId}</strong>
-                      <p style={{ margin: '8px 0 0' }}>{shipment.receiver?.name}</p>
-                    </div>
-                    <StatusBadge status={shipment.status} />
-                  </div>
-                  <div className="package-meta" style={{ marginTop: 14 }}>
-                    <span>Package: {shipment.packageType}</span>
-                    <span>Delivery: {shipment.deliveryAddress}</span>
-                    <span>Payment: {shipment.paymentStatus}</span>
-                    <span>ETA: {formatDateTime(shipment.estimatedDeliveryAt)}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-                    <Link className="button-primary" to={`/shipments/${shipment._id}`}>Open timeline</Link>
-                    <Link className="button-secondary" to={`/track?tracking=${shipment.trackingId}`}>Public tracking</Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+          
+          <div style={{ overflowX: 'auto', flex: 1 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>TRACKING ID</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>RECEIVER</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>STATUS</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  [...Array(3)].map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan="4" style={{ padding: '16px' }}>
+                        <div style={{ height: '24px', backgroundColor: 'var(--surface-3)', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : dashboard.recentShipments.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--ink-500)' }}>
+                      No shipments created yet.
+                    </td>
+                  </tr>
+                ) : (
+                  dashboard.recentShipments.slice(0, 5).map((shipment) => (
+                    <tr key={shipment._id} style={{ borderBottom: '1px solid var(--surface-3)' }}>
+                      <td style={{ padding: '16px', fontWeight: 500 }}>{shipment.trackingId}</td>
+                      <td style={{ padding: '16px', color: 'var(--ink-700)' }}>{shipment.receiver?.name}</td>
+                      <td style={{ padding: '16px' }}><StatusBadge status={shipment.status} /></td>
+                      <td style={{ padding: '16px' }}>
+                        <Link to={`/shipments/${shipment._id}`} style={{ color: 'var(--accent-600)', fontWeight: 500, marginRight: '16px' }}>View</Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </article>
 
-        <article className="glass-card section-card" style={{ gridColumn: 'span 5' }}>
-          <div className="admin-section-head">
-            <div>
-              <h2>Outstanding payments</h2>
-              <p>Pay before the final verified delivery handoff.</p>
-            </div>
-            <Link className="button-secondary" to="/payments">Open payments</Link>
+        {/* Outstanding Payments Sidebar */}
+        <article className="card" style={{ gridColumn: 'span 4' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Pending Payments</h2>
+            <Link className="button-secondary" to="/payments" style={{ fontSize: '0.85rem', padding: '6px 12px' }}>View All</Link>
           </div>
-          {loading ? (
-            <div className="empty-state">Loading unpaid shipments...</div>
-          ) : dashboard.outstandingPayments.length === 0 ? (
-            <div className="empty-state">No outstanding shipment payments.</div>
-          ) : (
-            <div className="package-stack">
-              {dashboard.outstandingPayments.slice(0, 4).map((shipment) => (
-                <article className="package-item" key={shipment._id}>
-                  <div className="package-topline">
-                    <strong>{shipment.trackingId}</strong>
-                    <StatusBadge status={shipment.paymentStatus} />
-                  </div>
-                  <div className="package-meta" style={{ marginTop: 12 }}>
-                    <span>Receiver: {shipment.receiver?.name}</span>
-                    <span>Amount: {formatCurrency(shipment.paymentAmount)}</span>
-                    <span>Status: {shipment.status}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </article>
-      </section>
 
-      <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
-        <article className="glass-card section-card" style={{ gridColumn: 'span 6' }}>
-          <div className="admin-section-head">
-            <div>
-              <h2>Delivery history</h2>
-              <p>Recently completed deliveries for quick review.</p>
-            </div>
-          </div>
-          {loading ? (
-            <div className="empty-state">Loading delivery history...</div>
-          ) : dashboard.deliveryHistory.length === 0 ? (
-            <div className="empty-state">Delivered shipments will appear here.</div>
-          ) : (
-            <div className="package-stack">
-              {dashboard.deliveryHistory.slice(0, 4).map((shipment) => (
-                <article className="package-item" key={shipment._id}>
-                  <div className="package-topline">
-                    <strong>{shipment.trackingId}</strong>
-                    <StatusBadge status={shipment.status} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {loading ? (
+               <div style={{ height: '60px', backgroundColor: 'var(--surface-3)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }}></div>
+            ) : dashboard.outstandingPayments.length === 0 ? (
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', backgroundColor: 'var(--surface-1)', borderRadius: '8px' }}>
+                All caught up! No pending payments.
+              </div>
+            ) : (
+              dashboard.outstandingPayments.slice(0, 4).map((shipment) => (
+                <div key={shipment._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px', transition: 'background-color 0.2s' }}>
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.95rem' }}>{shipment.trackingId}</strong>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--ink-500)' }}>{formatCurrency(shipment.paymentAmount)}</span>
                   </div>
-                  <div className="package-meta" style={{ marginTop: 12 }}>
-                    <span>Delivered: {formatDateTime(shipment.deliveredAt)}</span>
-                    <span>Verification: {shipment.verificationMethod || 'Verified'}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </article>
-
-        <article className="glass-card section-card" style={{ gridColumn: 'span 6' }}>
-          <div className="admin-section-head">
-            <div>
-              <h2>Payment history</h2>
-              <p>Recent transactions linked to your account.</p>
-            </div>
-          </div>
-          {loading ? (
-            <div className="empty-state">Loading payment activity...</div>
-          ) : dashboard.paymentHistory.length === 0 ? (
-            <div className="empty-state">No payment activity yet.</div>
-          ) : (
-            <div className="admin-history-list compact">
-              {dashboard.paymentHistory.map((payment) => (
-                <div className="admin-history-item" key={payment._id}>
-                  <div className="admin-user-item">
-                    <span>{payment.trackingId}</span>
-                    <StatusBadge status={payment.status} />
-                  </div>
-                  <strong>{formatCurrency(payment.amount)}</strong>
-                  <p>{payment.method}</p>
-                  <small>{formatDateTime(payment.createdAt)}</small>
+                  <Link className="button-ghost" to={`/payments`}>Pay Now</Link>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </article>
       </section>
+      
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </PortalShell>
   );
 };

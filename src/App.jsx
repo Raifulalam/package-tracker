@@ -10,11 +10,11 @@ import MyPackages from './pages/MyPackage';
 import NewDelivery from './pages/NewDelivery';
 import PaymentPage from './pages/PaymentPage';
 import Profile from './pages/Profile';
-import ReceiverDashboard from './pages/ReceiverDashboard';
 import Register from './pages/Register';
 import SenderDashboard from './pages/SenderDashboard';
 import TrackDelivery from './pages/TrackDelivery';
 import TrackPackage from './pages/TrackPackage';
+import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
   return (
@@ -25,6 +25,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/track" element={<TrackPackage />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/login" element={<Login />} />
 
             <Route
@@ -60,25 +61,9 @@ function App() {
               }
             />
             <Route
-              path="/receiver"
-              element={
-                <ProtectedRoute roles={['receiver']}>
-                  <ReceiverDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/receiver/track/:id"
-              element={
-                <ProtectedRoute roles={['receiver']}>
-                  <TrackDelivery />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/shipments/:id"
               element={
-                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                <ProtectedRoute roles={['sender', 'agent', 'admin']}>
                   <TrackDelivery />
                 </ProtectedRoute>
               }
@@ -102,7 +87,7 @@ function App() {
             <Route
               path="/payments"
               element={
-                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                <ProtectedRoute roles={['sender', 'agent', 'admin']}>
                   <PaymentPage />
                 </ProtectedRoute>
               }
@@ -110,7 +95,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute roles={['sender', 'receiver', 'agent', 'admin']}>
+                <ProtectedRoute roles={['sender', 'agent', 'admin']}>
                   <Profile />
                 </ProtectedRoute>
               }
