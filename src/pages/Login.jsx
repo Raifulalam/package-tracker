@@ -13,6 +13,26 @@ const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const handleResend = async () => {
+    if (!form.email) {
+      setError('Please enter your email to resend verification.');
+      return;
+    }
+    
+    setResending(true);
+    setError('');
+    
+    try {
+      const response = await api.post('/api/auth/resend-verification', { email: form.email });
+      showToast(response.message || 'Verification email resent successfully.', 'success');
+    } catch (err) {
+      setError(err.message || 'Failed to resend verification.');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -72,6 +92,19 @@ const Login = () => {
               required
             />
             {error ? <div className="auth-error">{error}</div> : null}
+            
+            {(error && error.toLowerCase().includes('verify your email')) && (
+              <button 
+                type="button" 
+                className="button-secondary" 
+                style={{ width: '100%', marginBottom: '1rem' }} 
+                disabled={resending} 
+                onClick={handleResend}
+              >
+                {resending ? 'Resending Code...' : 'Resend Verification Code'}
+              </button>
+            )}
+
             <button className="button-primary" disabled={loading} type="submit">
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
