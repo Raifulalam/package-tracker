@@ -79,7 +79,7 @@ const SenderDashboard = () => {
         ))}
       </section>
 
-      <section className="dashboard-grid" style={{ marginBottom: '24px' }}>
+      <section className="dashboar-grid" style={{ marginBottom: '24px' }}>
         {/* Recent Shipments Table Area */}
         <article className="card" style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -91,7 +91,7 @@ const SenderDashboard = () => {
               New Shipment
             </Link>
           </div>
-          
+
           <div style={{ overflowX: 'auto', flex: 1 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
@@ -143,7 +143,7 @@ const SenderDashboard = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {loading ? (
-               <div style={{ height: '60px', backgroundColor: 'var(--surface-3)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }}></div>
+              <div style={{ height: '60px', backgroundColor: 'var(--surface-3)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }}></div>
             ) : dashboard.outstandingPayments.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', backgroundColor: 'var(--surface-1)', borderRadius: '8px' }}>
                 All caught up! No pending payments.
@@ -162,7 +162,7 @@ const SenderDashboard = () => {
           </div>
         </article>
       </section>
-      
+
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }

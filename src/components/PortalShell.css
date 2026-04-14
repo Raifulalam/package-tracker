@@ -8,7 +8,8 @@
   --border-color: #e2e8f0;
   --text-main: #0f172a;
   --text-muted: #64748b;
-  --accent-primary: #0f172a; /* Dark sleek */
+  --accent-primary: #0f172a;
+  /* Dark sleek */
   --accent-light: #f1f5f9;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -274,7 +275,8 @@
 }
 
 /* Base generic components to mirror SaaS aesthetic */
-.glass-card, .card {
+.glass-card,
+.card {
   background: var(--surface-color);
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
@@ -287,14 +289,18 @@
   .portal-sidebar {
     transform: translateX(-100%);
   }
-  
+
   .portal-sidebar.open {
     transform: translateX(0);
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   }
 
   .portal-content-wrapper {
     margin-left: 0;
+  }
+
+  .portal-page-subtitle {
+    display: none;
   }
 
   .portal-topbar {

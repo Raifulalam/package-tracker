@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { formatDateTime, getStatusTone } from '../lib/formatters';
 import { getSocket } from '../lib/socket';
 import { useAuth } from '../context/AuthContext';
+import { Bell } from "lucide-react";
 
 const NotificationCenter = () => {
   const { user } = useAuth();
@@ -60,7 +61,9 @@ const NotificationCenter = () => {
   return (
     <div className="notification-center">
       <button className="notification-toggle button-ghost" onClick={() => setOpen((current) => !current)} type="button">
-        <span>Alerts</span>
+        <div>
+          <Bell size={24} />
+        </div>
         <strong className={`status-badge tone-${unreadTone}`}>{unreadCount}</strong>
       </button>
 

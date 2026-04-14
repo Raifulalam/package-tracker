@@ -167,23 +167,13 @@ button {
 
 .status-badge {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 0.83rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  position: absolute;
+  top: -5px;
+  right: 5px;
   border: 1px solid transparent;
 }
 
-.tone-success {
-  background: rgba(25, 154, 99, 0.12);
-  color: var(--success);
-  border-color: rgba(25, 154, 99, 0.16);
-}
+
 
 .tone-warning {
   background: rgba(217, 144, 25, 0.14);
@@ -1603,7 +1593,7 @@ button:disabled,
 .notification-toggle {
   width: auto;
   justify-content: space-between;
-  min-width: 132px;
+
 }
 
 .notification-panel {
