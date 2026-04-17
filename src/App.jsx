@@ -3,6 +3,10 @@ import ProtectedRoute from './components/ProtectedRoutes';
 import { ToastProvider } from './components/ToastProvider';
 import { AuthProvider } from './context/AuthContext';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminMarketing from './pages/AdminMarketing';
+import AdminOrders from './pages/AdminOrders';
+import AdminUsers from './pages/AdminUsers';
 import AgentDashboard from './pages/AgentDashboard';
 import LandingPage from './pages/LandinPage';
 import Login from './pages/Login';
@@ -11,10 +15,12 @@ import NewDelivery from './pages/NewDelivery';
 import PaymentPage from './pages/PaymentPage';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
+import ServiceManagement from './pages/ServiceManagement';
 import SenderDashboard from './pages/SenderDashboard';
 import TrackDelivery from './pages/TrackDelivery';
 import TrackPackage from './pages/TrackPackage';
 import VerifyEmail from './pages/VerifyEmail';
+import EarningsPage from './pages/Earning';
 
 function App() {
   return (
@@ -97,6 +103,54 @@ function App() {
               element={
                 <ProtectedRoute roles={['sender', 'agent', 'admin']}>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/earnings"
+              element={
+                <ProtectedRoute roles={['admin', 'agent']}>
+                  <EarningsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/service"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <ServiceManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/marketing"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminMarketing />
                 </ProtectedRoute>
               }
             />

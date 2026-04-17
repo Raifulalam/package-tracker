@@ -53,11 +53,13 @@ const SenderDashboard = () => {
     };
   }, [user.token]);
 
-  const statsCards = useMemo(
+  const summaryCards = useMemo(
     () => [
-      ['Total Shipments', dashboard.stats.total, 'info'],
-      ['In Transit', dashboard.stats.inTransit, 'warning'],
-      ['Delivered', dashboard.stats.delivered, 'success'],
+      ['Total Shipments', dashboard.stats.total, 'info', 'Everything created from your workspace.'],
+      ['Pending', dashboard.stats.pending, 'warning', 'Booked shipments still waiting for next action.'],
+      ['In Transit', dashboard.stats.inTransit, 'info', 'Packages currently moving through delivery.'],
+      ['Delivered', dashboard.stats.delivered, 'success', 'Completed handoffs confirmed by the receiver.'],
+      ['Unpaid', dashboard.stats.unpaid, 'danger', 'Shipments that still need payment attention.'],
     ],
     [dashboard.stats]
   );
@@ -65,112 +67,219 @@ const SenderDashboard = () => {
   return (
     <PortalShell
       title="Sender Dashboard"
-      subtitle="Overview of your shipments, tracking progress, and quick actions."
+      subtitle="Track shipment progress, review delivery history, and manage payment follow-up from one place."
     >
       {error ? <div className="auth-error">{error}</div> : null}
 
-      {/* Top Metrics Cards */}
-      <section className="dashboard-grid" style={{ marginBottom: '24px' }}>
-        {statsCards.map(([label, value, tone]) => (
-          <article className="card" key={label} style={{ gridColumn: 'span 4', borderTop: `4px solid var(--${tone})` }}>
-            <small style={{ fontWeight: 600, color: 'var(--ink-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</small>
-            <strong style={{ display: 'block', fontSize: '2.4rem', marginTop: '8px' }}>{loading ? '...' : value}</strong>
+      <section className="admin-summary-grid">
+        {summaryCards.map(([label, value, tone, copy]) => (
+          <article className="glass-card metric-card admin-summary-card" key={label}>
+            <small>{label}</small>
+            <strong>{loading ? '...' : value}</strong>
+            <p>{copy}</p>
+            <span className={`admin-summary-icon tone-${tone}`}>{String(label).slice(0, 2).toUpperCase()}</span>
           </article>
         ))}
       </section>
 
-      <section className="dashboar-grid" style={{ marginBottom: '24px' }}>
-        {/* Recent Shipments Table Area */}
-        <article className="card" style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Recent Shipments</h2>
-            <Link className="button-primary" to="/sender/create">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: 18, height: 18, marginRight: 6 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Shipment
-            </Link>
+      <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
+        <article className="glass-card section-card" style={{ gridColumn: 'span 8' }}>
+          <div className="admin-section-head">
+            <div>
+              <h2>Recent shipments</h2>
+              <p>The latest bookings, current status, and quick links into each shipment timeline.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <Link className="button-secondary" to="/sender/my-packages">View all</Link>
+              <Link className="button-primary" to="/sender/create">Create shipment</Link>
+            </div>
           </div>
 
-          <div style={{ overflowX: 'auto', flex: 1 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>TRACKING ID</th>
-                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>RECEIVER</th>
-                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>STATUS</th>
-                  <th style={{ padding: '12px 16px', color: 'var(--ink-500)', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  [...Array(3)].map((_, i) => (
-                    <tr key={i}>
-                      <td colSpan="4" style={{ padding: '16px' }}>
-                        <div style={{ height: '24px', backgroundColor: 'var(--surface-3)', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
-                      </td>
-                    </tr>
-                  ))
-                ) : dashboard.recentShipments.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">Loading recent shipments...</div>
+          ) : dashboard.recentShipments.length === 0 ? (
+            <div className="empty-state">No shipments created yet.</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+                <thead>
                   <tr>
-                    <td colSpan="4" style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--ink-500)' }}>
-                      No shipments created yet.
-                    </td>
+                    <th style={tableHeadStyle}>Tracking</th>
+                    <th style={tableHeadStyle}>Receiver</th>
+                    <th style={tableHeadStyle}>Status</th>
+                    <th style={tableHeadStyle}>Payment</th>
+                    <th style={tableHeadStyle}>Updated</th>
+                    <th style={tableHeadStyle}>Action</th>
                   </tr>
-                ) : (
-                  dashboard.recentShipments.slice(0, 5).map((shipment) => (
+                </thead>
+                <tbody>
+                  {dashboard.recentShipments.map((shipment) => (
                     <tr key={shipment._id} style={{ borderBottom: '1px solid var(--surface-3)' }}>
-                      <td style={{ padding: '16px', fontWeight: 500 }}>{shipment.trackingId}</td>
-                      <td style={{ padding: '16px', color: 'var(--ink-700)' }}>{shipment.receiver?.name}</td>
-                      <td style={{ padding: '16px' }}><StatusBadge status={shipment.status} /></td>
-                      <td style={{ padding: '16px' }}>
-                        <Link to={`/shipments/${shipment._id}`} style={{ color: 'var(--accent-600)', fontWeight: 500, marginRight: '16px' }}>View</Link>
+                      <td style={tableCellStrongStyle}>
+                        <div>{shipment.trackingId}</div>
+                        <small style={{ color: 'var(--ink-500)' }}>{shipment.packageType}</small>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div>{shipment.receiver?.name || 'Receiver'}</div>
+                        <small style={{ color: 'var(--ink-500)' }}>{shipment.deliveryAddress}</small>
+                      </td>
+                      <td style={tableCellStyle}><StatusBadge status={shipment.status} /></td>
+                      <td style={tableCellStyle}><StatusBadge status={shipment.paymentStatus} /></td>
+                      <td style={tableCellStyle}>{formatDateTime(shipment.updatedAt)}</td>
+                      <td style={tableCellStyle}>
+                        <Link to={`/shipments/${shipment._id}`} style={linkStyle}>Open</Link>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </article>
 
-        {/* Outstanding Payments Sidebar */}
-        <article className="card" style={{ gridColumn: 'span 4' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Pending Payments</h2>
-            <Link className="button-secondary" to="/payments" style={{ fontSize: '0.85rem', padding: '6px 12px' }}>View All</Link>
+        <article className="glass-card section-card" style={{ gridColumn: 'span 4' }}>
+          <div className="admin-section-head">
+            <div>
+              <h2>Pending payments</h2>
+              <p>Shipments that still need payment before the handoff can be completed.</p>
+            </div>
+            <Link className="button-secondary" to="/payments">Payments</Link>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {loading ? (
-              <div style={{ height: '60px', backgroundColor: 'var(--surface-3)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }}></div>
-            ) : dashboard.outstandingPayments.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', backgroundColor: 'var(--surface-1)', borderRadius: '8px' }}>
-                All caught up! No pending payments.
-              </div>
-            ) : (
-              dashboard.outstandingPayments.slice(0, 4).map((shipment) => (
-                <div key={shipment._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px', transition: 'background-color 0.2s' }}>
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem' }}>{shipment.trackingId}</strong>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--ink-500)' }}>{formatCurrency(shipment.paymentAmount)}</span>
+          {loading ? (
+            <div className="empty-state">Loading pending payments...</div>
+          ) : dashboard.outstandingPayments.length === 0 ? (
+            <div className="empty-state">All shipment payments are up to date.</div>
+          ) : (
+            <div className="package-stack">
+              {dashboard.outstandingPayments.map((shipment) => (
+                <article className="package-item" key={shipment._id}>
+                  <div className="package-topline">
+                    <strong>{shipment.trackingId}</strong>
+                    <StatusBadge status={shipment.paymentStatus} />
                   </div>
-                  <Link className="button-ghost" to={`/payments`}>Pay Now</Link>
-                </div>
-              ))
-            )}
-          </div>
+                  <div className="package-meta" style={{ marginTop: 12 }}>
+                    <span>Receiver: {shipment.receiver?.name || 'Receiver'}</span>
+                    <span>Amount: {formatCurrency(shipment.paymentAmount)}</span>
+                    <span>Status: {shipment.status}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
+                    <Link className="button-primary" to="/payments">Pay now</Link>
+                    <Link className="button-secondary" to={`/shipments/${shipment._id}`}>View shipment</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </article>
       </section>
 
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
+      <section className="dashboard-grid admin-dashboard-main" style={{ marginTop: 18 }}>
+        <article className="glass-card section-card" style={{ gridColumn: 'span 6' }}>
+          <div className="admin-section-head">
+            <div>
+              <h2>Delivery history</h2>
+              <p>Your most recent completed shipments, useful for quick confirmation and follow-up.</p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="empty-state">Loading delivery history...</div>
+          ) : dashboard.deliveryHistory.length === 0 ? (
+            <div className="empty-state">Delivered shipments will appear here once handoffs are complete.</div>
+          ) : (
+            <div className="package-stack">
+              {dashboard.deliveryHistory.map((shipment) => (
+                <article className="package-item" key={shipment._id}>
+                  <div className="package-topline">
+                    <strong>{shipment.trackingId}</strong>
+                    <StatusBadge status={shipment.status} />
+                  </div>
+                  <div className="package-meta" style={{ marginTop: 12 }}>
+                    <span>Receiver: {shipment.receiver?.name || 'Receiver'}</span>
+                    <span>Delivered: {formatDateTime(shipment.deliveredAt || shipment.updatedAt)}</span>
+                    <span>Amount: {formatCurrency(shipment.paymentAmount)}</span>
+                  </div>
+                  <Link className="button-secondary" style={{ marginTop: 14 }} to={`/shipments/${shipment._id}`}>Review timeline</Link>
+                </article>
+              ))}
+            </div>
+          )}
+        </article>
+
+        <article className="glass-card section-card" style={{ gridColumn: 'span 6' }}>
+          <div className="admin-section-head">
+            <div>
+              <h2>Payment history</h2>
+              <p>Recent transactions recorded from your account, including method, amount, and status.</p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="empty-state">Loading payment history...</div>
+          ) : dashboard.paymentHistory.length === 0 ? (
+            <div className="empty-state">Completed payments will appear here after checkout.</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 620 }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeadStyle}>Tracking</th>
+                    <th style={tableHeadStyle}>Amount</th>
+                    <th style={tableHeadStyle}>Method</th>
+                    <th style={tableHeadStyle}>Status</th>
+                    <th style={tableHeadStyle}>Recorded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.paymentHistory.map((payment) => (
+                    <tr key={payment._id} style={{ borderBottom: '1px solid var(--surface-3)' }}>
+                      <td style={tableCellStrongStyle}>
+                        <div>{payment.trackingId}</div>
+                        <small style={{ color: 'var(--ink-500)' }}>{payment.transactionId || 'Pending reference'}</small>
+                      </td>
+                      <td style={tableCellStyle}>{formatCurrency(payment.amount)}</td>
+                      <td style={tableCellStyle}>{payment.method}</td>
+                      <td style={tableCellStyle}><StatusBadge status={payment.status} /></td>
+                      <td style={tableCellStyle}>{formatDateTime(payment.paidAt || payment.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      </section>
     </PortalShell>
   );
+};
+
+const tableHeadStyle = {
+  padding: '12px 16px',
+  color: 'var(--ink-500)',
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  textAlign: 'left',
+  borderBottom: '1px solid var(--border-color)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const tableCellStyle = {
+  padding: '16px',
+  color: 'var(--ink-700)',
+  verticalAlign: 'top',
+};
+
+const tableCellStrongStyle = {
+  ...tableCellStyle,
+  fontWeight: 600,
+};
+
+const linkStyle = {
+  color: 'var(--accent-600)',
+  fontWeight: 600,
+  textDecoration: 'none',
 };
 
 export default SenderDashboard;

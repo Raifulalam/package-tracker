@@ -167,13 +167,17 @@ button {
 
 .status-badge {
   display: inline-flex;
-  position: absolute;
-  top: -5px;
-  right: 5px;
+
   border: 1px solid transparent;
 }
 
+.toast-success {
+  background: rgba(23, 133, 139, 0.12);
+  color: var(--success);
+  border-color: rgba(23, 133, 139, 0.12);
 
+
+}
 
 .tone-warning {
   background: rgba(217, 144, 25, 0.14);
@@ -1890,4 +1894,99 @@ button:disabled,
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card-grid.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.amount {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.table-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-grid.four {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filters select,
+.filters input {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.chart-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }

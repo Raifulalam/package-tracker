@@ -96,7 +96,9 @@ const NewDelivery = () => {
             </div>
             
             <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Shipment Successful</h2>
-            <p style={{ color: 'var(--ink-500)', marginBottom: '24px' }}>Please securely share the Delivery OTP with the receiver.</p>
+            <p style={{ color: 'var(--ink-500)', marginBottom: '24px' }}>
+              Confirmation emails have been sent to the sender and receiver, and the receiver also received the delivery OTP.
+            </p>
 
             <div style={{ backgroundColor: 'var(--surface-2)', padding: '24px', borderRadius: '16px', textAlign: 'left', marginBottom: '24px' }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -111,6 +113,12 @@ const NewDelivery = () => {
                  <span style={{ color: 'var(--ink-500)', fontWeight: 600 }}>Delivery OTP:</span>
                  <strong style={{ fontSize: '1.2rem', color: 'var(--accent-700)', letterSpacing: '4px' }}>{successData.deliveryOtp}</strong>
                </div>
+            </div>
+
+            <div style={{ marginBottom: '24px', color: 'var(--ink-500)', fontSize: '0.95rem' }}>
+              Sender email: <strong style={{ color: 'var(--ink-700)' }}>{successData.sender?.email || 'Not available'}</strong>
+              <br />
+              Receiver email: <strong style={{ color: 'var(--ink-700)' }}>{successData.receiver?.email || 'Not available'}</strong>
             </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
