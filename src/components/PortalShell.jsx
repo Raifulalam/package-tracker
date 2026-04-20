@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import NotificationCenter from './NotificationCenter';
 import './PortalShell.css';
 
@@ -44,6 +45,7 @@ function resolveHome(role) {
 
 const PortalShell = ({ title, subtitle, children, headerUtility = null }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
@@ -130,7 +132,18 @@ const PortalShell = ({ title, subtitle, children, headerUtility = null }) => {
         </header>
 
         <main className="portal-main">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: '100%', height: '100%' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>

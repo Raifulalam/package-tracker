@@ -54,9 +54,22 @@ body {
   font-family: var(--font-sans);
   color: var(--ink-950);
   background:
-    radial-gradient(circle at top left, rgba(239, 131, 84, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(39, 160, 166, 0.12), transparent 26%),
-    linear-gradient(180deg, #f8f4ee 0%, #f3f6f8 100%);
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08), transparent 40%),
+    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background-attachment: fixed;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
 }
 
 a {
@@ -94,11 +107,17 @@ button {
 .glass-card {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 28px;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,1);
+  backdrop-filter: blur(20px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255,255,255,1);
 }
 
 .glass-card::before {
@@ -288,9 +307,30 @@ button {
 }
 
 .button-primary {
-  background: linear-gradient(135deg, var(--brand-600), var(--accent-600));
+  background: linear-gradient(135deg, var(--accent-600), var(--brand-600));
   color: white;
-  box-shadow: 0 16px 35px rgba(23, 133, 139, 0.2);
+  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.button-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: rotate(45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.button-primary:hover::after {
+  opacity: 1;
+  transform: rotate(45deg) translate(50%, 50%);
 }
 
 .button-secondary {

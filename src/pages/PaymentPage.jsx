@@ -51,14 +51,35 @@ const PaymentPage = () => {
     [shipments]
   );
 
-  const payShipment = async (shipmentId, method) => {
-    setBusyId(`${shipmentId}:${method}`);
+  const handlePayClick = async (shipment, method) => {
+    setBusyId(`${shipment._id}:${method}`);
     try {
-      await api.post(`/api/payments/${shipmentId}/pay`, { method, outcome: 'success' }, { token: user.token });
-      showToast('Payment recorded successfully.', 'success');
-      await loadPayments();
+      const response = await api.post(`/api/payments/${shipment._id}/initiate`, { method }, { token: user.token });
+      const { url, formData } = response.data;
+
+      if (method === 'Khalti') {
+        window.location.href = url; // Natively redirects user to Khalti Gateway
+      } else if (method === 'eSewa' && formData) {
+        // eSewa requires a POST form submission
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.style.display = 'none';
+        
+        Object.keys(formData).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = formData[key];
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
     } catch (err) {
       setError(err.message);
+      showToast(err.message, 'error');
     } finally {
       setBusyId('');
     }
@@ -101,18 +122,20 @@ const PaymentPage = () => {
                       <button
                         className="button-primary"
                         disabled={busyId === `${shipment._id}:Khalti`}
-                        onClick={() => payShipment(shipment._id, 'Khalti')}
+                        onClick={() => handlePayClick(shipment, 'Khalti')}
                         type="button"
+                        style={{ background: 'linear-gradient(135deg, #5C2D91, #3f1e63)' }}
                       >
-                        {busyId === `${shipment._id}:Khalti` ? 'Paying...' : 'Pay with Khalti'}
+                        {busyId === `${shipment._id}:Khalti` ? 'Redirecting...' : 'Pay with Khalti'}
                       </button>
                       <button
-                        className="button-secondary"
+                        className="button-primary"
                         disabled={busyId === `${shipment._id}:eSewa`}
-                        onClick={() => payShipment(shipment._id, 'eSewa')}
+                        onClick={() => handlePayClick(shipment, 'eSewa')}
                         type="button"
+                        style={{ background: 'linear-gradient(135deg, #60BB46, #41822f)' }}
                       >
-                        {busyId === `${shipment._id}:eSewa` ? 'Paying...' : 'Pay with eSewa'}
+                        {busyId === `${shipment._id}:eSewa` ? 'Redirecting...' : 'Pay with eSewa'}
                       </button>
                     </div>
                   ) : (

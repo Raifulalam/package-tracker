@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import MyPackages from './pages/MyPackage';
 import NewDelivery from './pages/NewDelivery';
 import PaymentPage from './pages/PaymentPage';
+import PaymentVerification from './pages/PaymentVerification';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import ServiceManagement from './pages/ServiceManagement';
@@ -95,6 +96,14 @@ function App() {
               element={
                 <ProtectedRoute roles={['sender', 'agent', 'admin']}>
                   <PaymentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments/verify/:method"
+              element={
+                <ProtectedRoute roles={['sender', 'agent', 'admin']}>
+                  <PaymentVerification />
                 </ProtectedRoute>
               }
             />
