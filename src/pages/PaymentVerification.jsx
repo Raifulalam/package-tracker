@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
 import { useToast } from '../components/ToastProvider';
+import { api } from '../lib/api';
 
 const PaymentVerification = () => {
   const { method } = useParams(); // 'esewa' or 'khalti'
@@ -26,21 +27,15 @@ const PaymentVerification = () => {
 
       try {
         const queryStr = searchParams.toString();
-        const response = await fetch(`http://localhost:5000/api/payments/verify/${method}?${queryStr}`);
-        const data = await response.json();
+        const data = await api.get(`/api/payments/verify/${method}?${queryStr}`);
 
-        if (response.ok) {
-          setStatus('Payment Successful!');
-          showToast(`Successfully verified your ${method} payment.`, 'success');
-          setTimeout(() => navigate(data.data?.shipmentId ? `/shipments/${data.data.shipmentId}` : '/payments', { replace: true }), 2000);
-        } else {
-          setStatus('Verification failed');
-          showToast(data.message || 'Payment Verification failed on backend side', 'error');
-          setTimeout(() => navigate('/payments', { replace: true }), 3000);
-        }
+        setStatus('Payment Successful!');
+        showToast(`Successfully verified your ${method} payment.`, 'success');
+        setTimeout(() => navigate(data.data?.shipmentId ? `/shipments/${data.data.shipmentId}` : '/payments', { replace: true }), 2000);
       } catch (err) {
-        setStatus('Server unreachable. Could not verify payment.');
-        showToast(err.message, 'error');
+        setStatus('Verification failed');
+        showToast(err.message || 'Payment Verification failed', 'error');
+        setTimeout(() => navigate('/payments', { replace: true }), 3000);
       }
     };
 
