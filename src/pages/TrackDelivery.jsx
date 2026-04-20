@@ -141,6 +141,18 @@ const TrackDelivery = () => {
     }
   };
 
+  const requestOtpDispatch = async () => {
+    setBusyKey('send-otp');
+    try {
+      await api.post(`/api/shipments/${id}/send-otp`, {}, { token: user.token });
+      showToast("OTP has been dispatched securely to the receiver's email.", 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to dispatch OTP to receiver.', 'error');
+    } finally {
+      setBusyKey('');
+    }
+  };
+
   const stopScanner = () => {
     setScannerOpen(false);
     if (frameRef.current) {
@@ -299,11 +311,23 @@ const TrackDelivery = () => {
                     <h3 style={{ marginBottom: 0 }}>Delivery verification</h3>
                     <div className="field-group">
                       <span>OTP</span>
-                      <input
-                        onChange={(event) => setVerification((current) => ({ ...current, otp: event.target.value }))}
-                        placeholder="Enter receiver OTP"
-                        value={verification.otp}
-                      />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          onChange={(event) => setVerification((current) => ({ ...current, otp: event.target.value }))}
+                          placeholder="Enter receiver OTP"
+                          value={verification.otp}
+                          style={{ flex: 1 }}
+                        />
+                        <button 
+                          className="button-secondary" 
+                          disabled={busyKey === 'send-otp' || shipment.paymentStatus !== 'Paid'} 
+                          onClick={requestOtpDispatch} 
+                          type="button"
+                          style={{ whiteSpace: 'nowrap' }}
+                        >
+                          {busyKey === 'send-otp' ? 'Sending...' : 'Send OTP'}
+                        </button>
+                      </div>
                     </div>
                     <button className="button-primary" disabled={busyKey === 'verify-otp' || shipment.paymentStatus !== 'Paid'} onClick={() => verifyDelivery('otp')} type="button">
                       {busyKey === 'verify-otp' ? 'Verifying OTP...' : 'Verify with OTP'}
