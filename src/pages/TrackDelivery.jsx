@@ -22,7 +22,7 @@ const TrackDelivery = () => {
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState('');
   const [error, setError] = useState('');
-  const [verification, setVerification] = useState({ otp: '', qrToken: '', paymentMethod: 'Mock Stripe' });
+  const [verification, setVerification] = useState({ otp: '', qrToken: '', paymentMethod: 'eSewa' });
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scannerError, setScannerError] = useState('');
 
@@ -103,16 +103,40 @@ const TrackDelivery = () => {
   const payShipment = async () => {
     setBusyKey('payment');
     try {
-      await api.post(
-        `/api/payments/${id}/pay`,
-        { method: verification.paymentMethod, outcome: 'success' },
-        { token: user.token }
-      );
-      showToast('Payment completed successfully.', 'success');
-      await loadShipment();
+      if (['eSewa', 'Khalti'].includes(verification.paymentMethod)) {
+        const response = await api.post(`/api/payments/${id}/initiate`, {
+          method: verification.paymentMethod
+        }, { token: user.token });
+        
+        const gatewayData = response.data;
+        if (verification.paymentMethod === 'Khalti') {
+          window.location.href = gatewayData.url;
+        } else if (verification.paymentMethod === 'eSewa') {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = gatewayData.url;
+          Object.keys(gatewayData.formData).forEach(key => {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = key;
+            hiddenField.value = gatewayData.formData[key];
+            form.appendChild(hiddenField);
+          });
+          document.body.appendChild(form);
+          form.submit();
+        }
+      } else {
+        await api.post(
+          `/api/payments/${id}/pay`,
+          { method: verification.paymentMethod, outcome: 'success', note: 'Paid via Bank/QR' },
+          { token: user.token }
+        );
+        showToast('Payment completed successfully via Bank.', 'success');
+        await loadShipment();
+        setBusyKey('');
+      }
     } catch (err) {
       setError(err.message);
-    } finally {
       setBusyKey('');
     }
   };
@@ -175,7 +199,7 @@ const TrackDelivery = () => {
     }
   };
 
-  const canPay = ['sender', 'receiver', 'admin'].includes(user.role) && shipment?.paymentStatus !== 'Paid';
+  const canPay = ['sender', 'receiver', 'admin', 'agent'].includes(user.role) && shipment?.paymentStatus !== 'Paid';
   const canOperate = ['agent', 'admin'].includes(user.role);
   const canVerify = ['receiver', 'agent', 'admin'].includes(user.role) && shipment?.status === 'Out for Delivery';
 
@@ -242,8 +266,9 @@ const TrackDelivery = () => {
                         onChange={(event) => setVerification((current) => ({ ...current, paymentMethod: event.target.value }))}
                         value={verification.paymentMethod}
                       >
-                        <option value="Mock Stripe">Mock Stripe</option>
-                        <option value="Mock eSewa">Mock eSewa</option>
+                        <option value="eSewa">eSewa</option>
+                        <option value="Khalti">Khalti</option>
+                        <option value="Bank Transfer">Bank Deposit / QR</option>
                       </select>
                     </div>
                     <button className="button-primary" disabled={busyKey === 'payment'} onClick={payShipment} type="button">

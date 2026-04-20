@@ -32,7 +32,7 @@ const PaymentVerification = () => {
         if (response.ok) {
           setStatus('Payment Successful!');
           showToast(`Successfully verified your ${method} payment.`, 'success');
-          setTimeout(() => navigate('/payments', { replace: true }), 2000);
+          setTimeout(() => navigate(data.data?.shipmentId ? `/shipments/${data.data.shipmentId}` : '/payments', { replace: true }), 2000);
         } else {
           setStatus('Verification failed');
           showToast(data.message || 'Payment Verification failed on backend side', 'error');
