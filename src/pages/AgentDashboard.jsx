@@ -135,6 +135,19 @@ const AgentDashboard = () => {
     }
   };
 
+  const requestOtpDispatch = async (shipment) => {
+    setBusyKey(`send-otp:${shipment._id}`);
+    try {
+      await api.post(`/api/shipments/${shipment._id}/send-otp`, {}, { token: user.token });
+      showToast("OTP has been dispatched to the receiver's email.", 'success');
+      setVerifyModal({ open: true, shipment, otp: '' });
+    } catch (err) {
+      showToast(err.message || 'Failed to dispatch OTP to receiver.', 'error');
+    } finally {
+      setBusyKey('');
+    }
+  };
+
   const cards = useMemo(
     () => [
       ['Active', activeShipments.length, 'info', 'Deliveries you still need to move or complete.'],
@@ -287,10 +300,11 @@ const AgentDashboard = () => {
                       {shipment.status === 'Out for Delivery' ? (
                         <button
                           className="button-primary"
-                          onClick={() => setVerifyModal({ open: true, shipment, otp: '' })}
+                          disabled={busyKey === `send-otp:${shipment._id}`}
+                          onClick={() => requestOtpDispatch(shipment)}
                           type="button"
                         >
-                          Verify delivery
+                          {busyKey === `send-otp:${shipment._id}` ? 'Sending...' : 'Verify delivery'}
                         </button>
                       ) : null}
 
@@ -330,11 +344,12 @@ const AgentDashboard = () => {
                   </div>
                   <button
                     className="button-primary"
-                    onClick={() => setVerifyModal({ open: true, shipment, otp: '' })}
+                    disabled={busyKey === `send-otp:${shipment._id}`}
+                    onClick={() => requestOtpDispatch(shipment)}
                     style={{ marginTop: 14 }}
                     type="button"
                   >
-                    Open OTP handoff
+                    {busyKey === `send-otp:${shipment._id}` ? 'Sending...' : 'Open OTP handoff'}
                   </button>
                 </article>
               ))}
