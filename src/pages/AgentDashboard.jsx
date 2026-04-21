@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PortalShell from '../components/PortalShell';
 import StatusBadge from '../components/StatusBadge';
+import Modal from '../components/Modal';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -418,59 +419,60 @@ const AgentDashboard = () => {
         </article>
       </section>
 
-      {verifyModal.open && verifyModal.shipment ? (
-        <div className="modal-overlay" role="presentation">
-          <div className="modal-card compact" aria-modal="true" role="dialog">
-            <h3>Verify delivery</h3>
-            <p>
-              Ask the receiver for the OTP to confirm delivery of <strong>{verifyModal.shipment.trackingId}</strong>.
-            </p>
+      <Modal
+        isOpen={verifyModal.open && !!verifyModal.shipment}
+        onClose={() => setVerifyModal({ open: false, shipment: null, otp: '' })}
+        title="Verify delivery"
+      >
+        <p>
+          Ask the receiver for the OTP to confirm delivery of <strong>{verifyModal.shipment?.trackingId}</strong>.
+        </p>
 
-            <div className="admin-modal-grid">
-              <div><strong>Receiver</strong><span>{verifyModal.shipment.receiver?.name || 'Receiver'}</span></div>
-              <div><strong>Payment</strong><span>{verifyModal.shipment.paymentStatus}</span></div>
-              <div><strong>Address</strong><span>{verifyModal.shipment.deliveryAddress}</span></div>
-              <div><strong>Status</strong><span>{verifyModal.shipment.status}</span></div>
-            </div>
-
-            <form onSubmit={submitOtpVerification} style={{ display: 'grid', gap: 14, marginTop: 16 }}>
-              <input
-                autoFocus
-                onChange={(event) => setVerifyModal((current) => ({ ...current, otp: event.target.value }))}
-                placeholder="Enter delivery OTP"
-                required
-                style={{
-                  padding: '12px',
-                  borderRadius: '14px',
-                  border: '1px solid var(--border-color)',
-                  fontSize: '1.1rem',
-                  textAlign: 'center',
-                  letterSpacing: '2px',
-                }}
-                type="text"
-                value={verifyModal.otp}
-              />
-
-              <div className="modal-actions" style={{ marginTop: 0 }}>
-                <button
-                  className="button-ghost"
-                  onClick={() => setVerifyModal({ open: false, shipment: null, otp: '' })}
-                  type="button"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="button-primary"
-                  disabled={busyKey.startsWith('verify') || !verifyModal.otp}
-                  type="submit"
-                >
-                  {busyKey.startsWith('verify') ? 'Verifying...' : 'Confirm delivery'}
-                </button>
-              </div>
-            </form>
+        {verifyModal.shipment && (
+          <div className="admin-modal-grid">
+            <div><strong>Receiver</strong><span>{verifyModal.shipment.receiver?.name || 'Receiver'}</span></div>
+            <div><strong>Payment</strong><span>{verifyModal.shipment.paymentStatus}</span></div>
+            <div><strong>Address</strong><span>{verifyModal.shipment.deliveryAddress}</span></div>
+            <div><strong>Status</strong><span>{verifyModal.shipment.status}</span></div>
           </div>
-        </div>
-      ) : null}
+        )}
+
+        <form onSubmit={submitOtpVerification} style={{ display: 'grid', gap: 14, marginTop: 16 }}>
+          <input
+            autoFocus
+            onChange={(event) => setVerifyModal((current) => ({ ...current, otp: event.target.value }))}
+            placeholder="Enter delivery OTP"
+            required
+            style={{
+              padding: '12px',
+              borderRadius: '14px',
+              border: '1px solid var(--border-color)',
+              fontSize: '1.1rem',
+              textAlign: 'center',
+              letterSpacing: '2px',
+            }}
+            type="text"
+            value={verifyModal.otp}
+          />
+
+          <div className="modal-actions" style={{ marginTop: 0 }}>
+            <button
+              className="button-ghost"
+              onClick={() => setVerifyModal({ open: false, shipment: null, otp: '' })}
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              className="button-primary"
+              disabled={busyKey.startsWith('verify') || !verifyModal.otp}
+              type="submit"
+            >
+              {busyKey.startsWith('verify') ? 'Verifying...' : 'Confirm delivery'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </PortalShell>
   );
 };
